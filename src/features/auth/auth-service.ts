@@ -1,12 +1,16 @@
+import { pbClient } from '@/lib/pocketbase';
 import type { AuthRecord } from 'pocketbase';
-import { UserSchema } from './auth-model';
+import { USERS_COLLECTION } from './auth-constants';
+import { type SignupUser, SignupUserSchema, UserSchema } from './auth-model';
 
-export const getUser = (record: AuthRecord) => {
-  if (!record) {
+export const getUser = (input?: AuthRecord) => {
+  const authRecord = input ?? pbClient.authStore.record ?? null;
+
+  if (!authRecord) {
     return null;
   }
 
-  const validated = UserSchema.safeParse(record);
+  const validated = UserSchema.safeParse(authRecord);
 
   if (!validated.success) {
     console.log('Invalid user provided');
@@ -14,4 +18,10 @@ export const getUser = (record: AuthRecord) => {
   }
 
   return validated.data;
+};
+
+export const createUser = async (input: SignupUser) => {
+  const validated = SignupUserSchema.parse(input);
+
+  return await pbClient.collection(USERS_COLLECTION).create(validated);
 };

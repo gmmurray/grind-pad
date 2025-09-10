@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { USERS_COLLECTION } from '../auth-constants';
 import type { LoginUser, SignupUser, User } from '../auth-model';
-import { getUser } from '../auth-service';
+import { createUser, getUser } from '../auth-service';
 import { AuthContext } from './auth-context';
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const signup = useCallback(async (input: SignupUser) => {
     setIsAuthenticating(true);
     try {
-      const result = await pbClient.collection(USERS_COLLECTION).create(input);
+      const result = await createUser(input);
       setUser(getUser(result));
       router.navigate({ to: '/home' });
     } catch (error) {

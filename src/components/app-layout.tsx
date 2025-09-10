@@ -35,9 +35,14 @@ function AppLayout({ children }: PropsWithChildren) {
             <Portal>
               <Menu.Positioner>
                 <Menu.Content>
-                  <Menu.Item value="new-txt" onClick={() => auth.logout()}>
-                    logout
-                  </Menu.Item>
+                  <Menu.ItemGroup>
+                    <Menu.ItemGroupLabel color="fg.muted">
+                      {auth.user?.email}
+                    </Menu.ItemGroupLabel>
+                    <Menu.Item value="logout" onClick={() => auth.logout()}>
+                      logout
+                    </Menu.Item>
+                  </Menu.ItemGroup>
                 </Menu.Content>
               </Menu.Positioner>
             </Portal>
@@ -45,7 +50,9 @@ function AppLayout({ children }: PropsWithChildren) {
         </Container>
       </Box>
 
-      <Container maxW="5xl">{children}</Container>
+      <Container maxW="5xl" flex="1" display="flex" my="4">
+        {children}
+      </Container>
 
       <Box mt="auto" bg="bg.panel" py="4">
         <Container maxW="5xl">

@@ -1,20 +1,15 @@
+import { TimestampSchema } from '@/lib/pocketbase';
 import { z } from 'zod';
 
-export const UserSchema = z.object({
-  id: z.string(),
-  email: z.email(),
-  emailVisibility: z.boolean(),
-  verified: z.boolean(),
-  avatar: z.string().optional(),
-  created: z
-    .string()
-    .transform(str => str.replace(' ', 'T'))
-    .pipe(z.iso.datetime()),
-  updated: z
-    .string()
-    .transform(str => str.replace(' ', 'T'))
-    .pipe(z.iso.datetime()),
-});
+export const UserSchema = z
+  .object({
+    id: z.string(),
+    email: z.email(),
+    emailVisibility: z.boolean(),
+    verified: z.boolean(),
+    avatar: z.string().optional(),
+  })
+  .extend(TimestampSchema.shape);
 
 export const LoginUserSchema = z.object({
   email: UserSchema.shape.email,
