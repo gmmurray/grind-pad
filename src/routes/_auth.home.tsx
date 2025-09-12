@@ -1,4 +1,8 @@
 import {
+  getOwnGameQueryOptions,
+  getOwnGamesQueryOptions,
+} from '@/features/games/game-queries';
+import {
   Box,
   Button,
   Card,
@@ -12,13 +16,16 @@ import {
   Stack,
   Tabs,
 } from '@chakra-ui/react';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LuEllipsisVertical, LuList, LuPlus } from 'react-icons/lu';
 
 import { useGameDialog } from '@/features/games/components/game-dialog';
-import { getOwnGamesQueryOptions } from '@/features/games/game-queries';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import type { Game } from '@/features/games/game-model';
+import { useEffect, useMemo } from 'react';
 import z from 'zod';
+
+const LAST_GAME_STORAGE_KEY = 'gp:lastGameId';
 
 const searchSchema = z.object({
   game: z.string().optional(),
@@ -28,11 +35,23 @@ const searchSchema = z.object({
 type SearchSchema = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute('/_auth/home')({
-  component: RouteComponent,
-  loader: ({ context: { queryClient } }) => {
-    queryClient.ensureQueryData(getOwnGamesQueryOptions(1, 20));
-  },
   validateSearch: searchSchema,
+  loaderDeps: ({ search: { game } }) => ({ game }),
+  loader: async ({
+    context: { queryClient },
+    deps: { game: gameFromSearch },
+  }) => {
+    const gameList = await queryClient.ensureQueryData(
+      getOwnGamesQueryOptions(1, 20),
+    );
+    const gameFromStorage =
+      window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined;
+    const selectedGameId = gameFromSearch ?? gameFromStorage;
+    if (selectedGameId && !gameList.some(g => g.id === selectedGameId)) {
+      await queryClient.ensureQueryData(getOwnGameQueryOptions(selectedGameId));
+    }
+  },
+  component: RouteComponent,
 });
 
 function RouteComponent() {
@@ -40,9 +59,35 @@ function RouteComponent() {
   const gamesQuery = useSuspenseQuery(getOwnGamesQueryOptions(1, 20));
   const navigate = useNavigate({ from: Route.fullPath });
   const { game: gameIdParam, tab } = Route.useSearch();
-  const selectedGame = gameIdParam
-    ? gamesQuery.data.find(g => g.id === gameIdParam)
-    : gamesQuery.data[0];
+
+  const lastStoredId =
+    typeof window !== 'undefined'
+      ? (window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined)
+      : undefined;
+  const selectedId = gameIdParam ?? lastStoredId ?? gamesQuery.data[0]?.id;
+
+  const selectedOffPage = !!selectedId && !gamesQuery.data.some(g => g.id === selectedId);
+  const { data: selectedFromCache } = useQuery({
+    ...getOwnGameQueryOptions(selectedId ?? '__none__'),
+    enabled: !!selectedId && selectedOffPage,
+  });
+
+  // Keep localStorage in sync with current selection
+  useEffect(() => {
+    if (selectedId && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(LAST_GAME_STORAGE_KEY, selectedId);
+      } catch {}
+    }
+  }, [selectedId]);
+
+  // Build a union list so selected game shows even if off-page
+  const unionGames = useMemo(
+    () => makeUnionGames(gamesQuery.data, selectedId, selectedFromCache as Game | null | undefined),
+    [gamesQuery.data, selectedId, selectedFromCache],
+  );
+
+  const selectedGame = unionGames.find(g => g.id === selectedId);
 
   return (
     <Grid
@@ -92,14 +137,20 @@ function RouteComponent() {
             </Flex>
 
             <Stack gap="1">
-              {gamesQuery.data.map(game => {
+              {unionGames.map(game => {
                 return (
                   <Button
                     key={game.id}
                     variant={selectedGame?.id === game.id ? 'subtle' : 'ghost'}
-                    onClick={() =>
-                      navigate({ search: prev => ({ ...prev, game: game.id }) })
-                    }
+                    onClick={() => {
+                      window.localStorage.setItem(
+                        LAST_GAME_STORAGE_KEY,
+                        game.id,
+                      );
+                      navigate({
+                        search: prev => ({ ...prev, game: game.id }),
+                      });
+                    }}
                     justifyContent="start"
                   >
                     {game.title}
@@ -152,4 +203,27 @@ function RouteComponent() {
       </GridItem>
     </Grid>
   );
+}
+
+function makeUnionGames(
+  games: Game[],
+  selectedId?: string,
+  selectedFromCache?: Game | null,
+): Game[] {
+  if (!selectedId) return games;
+  const existing = games.find(g => g.id === selectedId);
+  if (existing) return games;
+  if (selectedFromCache) return [selectedFromCache as Game].concat(games);
+  // Minimal placeholder so the selected game is visible until loaded
+  return (
+    [
+      {
+        id: selectedId,
+        title: '(loading...)',
+        user: '',
+        created: '',
+        updated: '',
+      } as Game,
+    ] as Game[]
+  ).concat(games);
 }
