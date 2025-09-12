@@ -1,39 +1,14 @@
-import './styles.css';
-
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from '@tanstack/react-router';
 
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-import { UIProvider } from './components/ui/provider.tsx';
-import { Toaster } from './components/ui/toaster.tsx';
-import { AuthProvider } from './features/auth/provider/auth-provider.tsx';
-import { useAuth } from './features/auth/provider/use-auth.ts';
-import reportWebVitals from './reportWebVitals.ts';
-// Import the generated route tree
-import { routeTree } from './routeTree.gen.ts';
-
-const queryClient = new QueryClient();
-
-// Create a new router instance
-export const router = createRouter({
-  routeTree,
-  context: {
-    queryClient,
-    auth: undefined!,
-  },
-  defaultPreload: 'intent',
-  scrollRestoration: true,
-  defaultStructuralSharing: true,
-  defaultPreloadStaleTime: 0,
-});
-
-// Register the router instance for type safety
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router;
-  }
-}
+import { UIProvider } from './components/ui/provider';
+import { Toaster } from './components/ui/toaster';
+import { AuthProvider } from './features/auth/provider/auth-provider';
+import { useAuth } from './features/auth/provider/use-auth';
+import reportWebVitals from './reportWebVitals';
+import { queryClient, router } from './router';
 
 // Render the app
 const rootElement = document.getElementById('app');

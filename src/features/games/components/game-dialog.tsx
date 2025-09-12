@@ -1,16 +1,11 @@
-import {
-  Button,
-  CloseButton,
-  Dialog,
-  Portal,
-  useDialog,
-} from '@chakra-ui/react';
+import { CloseButton, Dialog, Portal, useDialog } from '@chakra-ui/react';
 import {
   type PropsWithChildren,
   createContext,
   useContext,
   useState,
 } from 'react';
+import { GameForm } from './game-form';
 
 type Mode = 'add' | 'edit';
 
@@ -53,13 +48,10 @@ export function GameDialogProvider({ children }: PropsWithChildren) {
               <Dialog.Header>
                 <Dialog.Title>{isEdit ? 'Edit' : 'Add'}</Dialog.Title>
               </Dialog.Header>
-              <Dialog.Body>hello</Dialog.Body>
-              <Dialog.Footer>
-                <Dialog.ActionTrigger asChild>
-                  <Button variant="outline">cancel</Button>
-                </Dialog.ActionTrigger>
-                <Button>{isEdit ? 'Save' : 'Add'}</Button>
-              </Dialog.Footer>
+              <Dialog.Body>
+                <GameForm onSubmit={close} onCancel={close} />
+              </Dialog.Body>
+
               <Dialog.CloseTrigger asChild>
                 <CloseButton size="sm" />
               </Dialog.CloseTrigger>

@@ -12,21 +12,23 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <Outlet />
-      <TanstackDevtools
-        config={{
-          position: 'bottom-right',
-        }}
-        plugins={[
-          {
-            name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
-          },
-          {
-            name: 'Tanstack Query',
-            render: <ReactQueryDevtoolsPanel />,
-          },
-        ]}
-      />
+      {import.meta.env.DEV && (
+        <TanstackDevtools
+          config={{
+            position: 'bottom-right',
+          }}
+          plugins={[
+            {
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />,
+            },
+            {
+              name: 'Tanstack Query',
+              render: <ReactQueryDevtoolsPanel />,
+            },
+          ]}
+        />
+      )}
     </>
   ),
 });

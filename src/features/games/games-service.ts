@@ -11,7 +11,16 @@ import {
 } from './game-model';
 
 export async function getOwnGame(gameId: string): Promise<Game | null> {
-  const dbGame = await pbClient.collection(GAMES_COLLECTION).getOne(gameId);
+  const user = getUser();
+
+  if (!user) {
+    console.log('Unable to retrieve game: no user provided');
+    return null;
+  }
+
+  const dbGame = await pbClient
+    .collection(GAMES_COLLECTION)
+    .getFirstListItem(`id="${gameId}" && user = "${user.id}"`);
 
   const validated = GameSchema.safeParse(dbGame);
 
@@ -23,11 +32,20 @@ export async function getOwnGame(gameId: string): Promise<Game | null> {
   return validated.data;
 }
 
-export async function getOwnGames(): Promise<Game[]> {
-  const dbGames = await pbClient.collection(GAMES_COLLECTION).getFullList();
+export async function getOwnGames(page = 1, perPage = 20): Promise<Game[]> {
+  const user = getUser();
+
+  if (!user) {
+    console.log('Unable to retrieve games: no user provided');
+    return [];
+  }
+
+  const list = await pbClient
+    .collection(GAMES_COLLECTION)
+    .getList(page, perPage, { filter: `user = "${user.id}"` });
 
   const results: Game[] = [];
-  for (const g of dbGames) {
+  for (const g of list.items) {
     const validated = GameSchema.safeParse(g);
 
     if (!validated.success) {

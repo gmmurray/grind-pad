@@ -1,5 +1,5 @@
 import { pbClient } from '@/lib/pocketbase';
-import { router } from '@/main';
+import { router } from '@/router';
 import {
   type PropsWithChildren,
   useCallback,
