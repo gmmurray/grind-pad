@@ -3,7 +3,14 @@ import { createRouter } from '@tanstack/react-router';
 
 import { routeTree } from './routeTree.gen';
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 20_000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 export const router = createRouter({
   routeTree,
@@ -22,4 +29,3 @@ declare module '@tanstack/react-router' {
     router: typeof router;
   }
 }
-
