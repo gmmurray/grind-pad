@@ -1,14 +1,14 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
-
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { UIProvider } from './components/ui/provider';
 import { Toaster } from './components/ui/toaster';
 import { AuthProvider } from './features/auth/provider/auth-provider';
 import { useAuth } from './features/auth/provider/use-auth';
+import { queryClient } from './lib/queryClient';
+import { router } from './lib/router';
 import reportWebVitals from './reportWebVitals';
-import { queryClient, router } from './router';
 
 // Render the app
 const rootElement = document.getElementById('app');

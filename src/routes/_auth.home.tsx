@@ -1,4 +1,8 @@
 import {
+  GAME_TABS,
+  gameTabs,
+} from '@/features/games/components/tabs/constants';
+import {
   getOwnGameQueryOptions,
   getOwnGamesQueryOptions,
 } from '@/features/games/game-queries';
@@ -14,32 +18,30 @@ import {
   Menu,
   Portal,
   Stack,
-  Tabs,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
 import { LuEllipsisVertical, LuList, LuPlus } from 'react-icons/lu';
 
 import { useGameDialog } from '@/features/games/components/game-dialog';
+import GameTabs from '@/features/games/components/tabs/game-tabs';
 import type { Game } from '@/features/games/game-model';
-import { useEffect, useMemo } from 'react';
+import { getOwnGameTasksQueryOptions } from '@/features/tasks/task-queries';
 import z from 'zod';
 
 const LAST_GAME_STORAGE_KEY = 'gp:lastGameId';
-
 const searchSchema = z.object({
   game: z.string().optional(),
-  tab: z.enum(['tasks', 'notes', 'resources']).optional().default('tasks'),
+  tab: z.enum(gameTabs).optional().default('tasks'),
 });
-
-type SearchSchema = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute('/_auth/home')({
   validateSearch: searchSchema,
-  loaderDeps: ({ search: { game } }) => ({ game }),
+  loaderDeps: ({ search: { game, tab } }) => ({ game, tab }),
   loader: async ({
     context: { queryClient },
-    deps: { game: gameFromSearch },
+    deps: { game: gameFromSearch, tab: tabFromSearch },
   }) => {
     const gameList = await queryClient.ensureQueryData(
       getOwnGamesQueryOptions(1, 20),
@@ -47,8 +49,27 @@ export const Route = createFileRoute('/_auth/home')({
     const gameFromStorage =
       window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined;
     const selectedGameId = gameFromSearch ?? gameFromStorage;
-    if (selectedGameId && !gameList.some(g => g.id === selectedGameId)) {
-      await queryClient.ensureQueryData(getOwnGameQueryOptions(selectedGameId));
+
+    if (selectedGameId) {
+      if (!gameList.some(g => g.id === selectedGameId)) {
+        await queryClient.ensureQueryData(
+          getOwnGameQueryOptions(selectedGameId),
+        );
+      }
+
+      if (tabFromSearch === GAME_TABS.NOTES) {
+        // prefetch tasks and resources
+        // ensure notes data
+      } else if (tabFromSearch === GAME_TABS.RESOURCES) {
+        // prefetch tasks and notes
+        // ensure resources data
+      } else {
+        // (tab = tasks or tab = undefined)
+        // prefetch notes and resources
+        await queryClient.ensureQueryData(
+          getOwnGameTasksQueryOptions(selectedGameId),
+        );
+      }
     }
   },
   component: RouteComponent,
@@ -64,30 +85,36 @@ function RouteComponent() {
     typeof window !== 'undefined'
       ? (window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined)
       : undefined;
-  const selectedId = gameIdParam ?? lastStoredId ?? gamesQuery.data[0]?.id;
+  const selectedGameId = gameIdParam ?? lastStoredId ?? gamesQuery.data[0]?.id;
 
-  const selectedOffPage = !!selectedId && !gamesQuery.data.some(g => g.id === selectedId);
+  const selectedOffPage =
+    !!selectedGameId && !gamesQuery.data.some(g => g.id === selectedGameId);
   const { data: selectedFromCache } = useQuery({
-    ...getOwnGameQueryOptions(selectedId ?? '__none__'),
-    enabled: !!selectedId && selectedOffPage,
+    ...getOwnGameQueryOptions(selectedGameId ?? '__none__'),
+    enabled: !!selectedGameId && selectedOffPage,
   });
 
   // Keep localStorage in sync with current selection
   useEffect(() => {
-    if (selectedId && typeof window !== 'undefined') {
+    if (selectedGameId && typeof window !== 'undefined') {
       try {
-        window.localStorage.setItem(LAST_GAME_STORAGE_KEY, selectedId);
+        window.localStorage.setItem(LAST_GAME_STORAGE_KEY, selectedGameId);
       } catch {}
     }
-  }, [selectedId]);
+  }, [selectedGameId]);
 
   // Build a union list so selected game shows even if off-page
   const unionGames = useMemo(
-    () => makeUnionGames(gamesQuery.data, selectedId, selectedFromCache as Game | null | undefined),
-    [gamesQuery.data, selectedId, selectedFromCache],
+    () =>
+      makeUnionGames(
+        gamesQuery.data,
+        selectedGameId,
+        selectedFromCache as Game | null | undefined,
+      ),
+    [gamesQuery.data, selectedGameId, selectedFromCache],
   );
 
-  const selectedGame = unionGames.find(g => g.id === selectedId);
+  const selectedGame = unionGames.find(g => g.id === selectedGameId);
 
   return (
     <Grid
@@ -97,6 +124,7 @@ function RouteComponent() {
       flexDir={{ base: 'column', md: 'unset' }}
       gap="4"
     >
+      {/* SIDEBAR */}
       <GridItem colSpan={{ base: 1, md: 1 }}>
         <Card.Root h="full">
           <Card.Body>
@@ -161,43 +189,28 @@ function RouteComponent() {
           </Card.Body>
         </Card.Root>
       </GridItem>
+
+      {/* MAIN AREA */}
       <GridItem colSpan={{ base: 1, md: 3 }} flex={{ base: '1', md: 'unset' }}>
         <Card.Root h="full">
           <Card.Body>
             <Heading size="4xl" mb="4">
               {selectedGame?.title}
             </Heading>
-            <Tabs.Root
-              variant="enclosed"
-              fitted
-              value={tab}
-              onValueChange={e =>
+
+            {/* TABS */}
+            <GameTabs
+              gameId={selectedGameId}
+              tab={tab}
+              onTabChange={newTab =>
                 navigate({
                   search: prev => ({
                     ...prev,
-                    tab: e.value as SearchSchema['tab'],
+                    tab: newTab,
                   }),
                 })
               }
-            >
-              <Tabs.List>
-                <Tabs.Trigger value="tasks">tasks</Tabs.Trigger>
-                <Tabs.Trigger value="notes">notes</Tabs.Trigger>
-                <Tabs.Trigger value="resources">resources</Tabs.Trigger>
-              </Tabs.List>
-
-              <Tabs.Content value="tasks">
-                <Heading>tasks</Heading>
-              </Tabs.Content>
-
-              <Tabs.Content value="notes">
-                <Heading>notes</Heading>
-              </Tabs.Content>
-
-              <Tabs.Content value="resources">
-                <Heading>resources</Heading>
-              </Tabs.Content>
-            </Tabs.Root>
+            />
           </Card.Body>
         </Card.Root>
       </GridItem>

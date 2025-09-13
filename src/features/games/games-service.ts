@@ -75,10 +75,10 @@ export async function createOwnGame(input: CreateGame): Promise<Game> {
   return GameSchema.parse(dbGame);
 }
 
-export async function updateOwnGame(
-  gameId: string,
-  input: UpdateGame,
-): Promise<Game> {
+export async function updateOwnGame({
+  gameId,
+  input,
+}: { gameId: string; input: UpdateGame }): Promise<Game> {
   const validatedInput = UpdateGameSchema.parse(input);
 
   const existingGame = await getOwnGame(gameId);

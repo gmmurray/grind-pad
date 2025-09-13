@@ -1,9 +1,13 @@
 import {
-  queryOptions,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { createOwnGame, getOwnGame, getOwnGames } from './games-service';
+  createOwnGame,
+  deleteOwnGame,
+  getOwnGame,
+  getOwnGames,
+  updateOwnGame,
+} from './games-service';
+
+import { buildMutationHook } from '@/hooks/queries';
+import { queryOptions } from '@tanstack/react-query';
 
 export const GAMES_QUERY_KEY = 'games';
 
@@ -31,14 +35,17 @@ export const getOwnGamesQueryOptions = (page = 1, perPage = 20) =>
     queryFn: () => getOwnGames(page, perPage),
   });
 
-export const useCreateOwnGameMutation = () => {
-  const queryClient = useQueryClient();
+export const useCreateOwnGameMutation = buildMutationHook(
+  createOwnGame,
+  gameQueryKeys.getOwnGames.all,
+);
 
-  return useMutation({
-    mutationFn: createOwnGame,
-    onSuccess: async () =>
-      await queryClient.invalidateQueries({
-        queryKey: gameQueryKeys.getOwnGames.all,
-      }),
-  });
-};
+export const useUpdateOwnGameMutation = buildMutationHook(
+  updateOwnGame,
+  gameQueryKeys.getOwnGames.all,
+);
+
+export const useDeleteOwnGameMutation = buildMutationHook(
+  deleteOwnGame,
+  gameQueryKeys.getOwnGames.all,
+);
