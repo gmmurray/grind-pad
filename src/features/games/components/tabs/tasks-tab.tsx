@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   ButtonGroup,
   Card,
@@ -6,10 +7,10 @@ import {
   Flex,
   GridItem,
   Heading,
-  Icon,
   IconButton,
   Input,
   Portal,
+  ProgressCircle,
   Select,
   SimpleGrid,
   Stack,
@@ -33,11 +34,26 @@ import {
   useMoveOwnTaskMutation,
   useUpdateOwnTaskMutation,
 } from '@/features/tasks/task-queries';
+import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 import { LuCircle, LuCircleCheck, LuRotateCcw, LuTrash2 } from 'react-icons/lu';
-
 type TasksTabProps = {
   gameId: string;
 };
@@ -73,6 +89,10 @@ function TasksTab({ gameId }: TasksTabProps) {
   const deleteTaskMutation = useDeleteOwnTaskMutation(gameId);
   const moveOwnTaskMutation = useMoveOwnTaskMutation(gameId);
 
+  const taskLookup = useMemo(() => {
+    return new Map(tasksData.map(t => [t.id, t]));
+  }, [tasksData]);
+
   const tasksByType = useMemo(() => {
     return splitByType(tasksData);
   }, [tasksData]);
@@ -88,6 +108,45 @@ function TasksTab({ gameId }: TasksTabProps) {
       {} as Record<TaskType, number>,
     );
   }, [tasksByType]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const activeTask = taskLookup.get(event.active.id.toString());
+    const overTask = event.over
+      ? taskLookup.get(event.over.id.toString())
+      : undefined;
+
+    // return if either task doesn't exist, if they are the same task, or if they are not the same type
+    if (
+      !activeTask ||
+      !overTask ||
+      activeTask.id === overTask.id ||
+      activeTask.type !== overTask.type
+    ) {
+      return;
+    }
+
+    const tasksOfSameType = tasksByType[activeTask.type];
+
+    // find current and new positions
+    const oldIndex = tasksOfSameType.findIndex(t => t.id === activeTask.id);
+    const newIndex = tasksOfSameType.findIndex(t => t.id === overTask.id);
+
+    // no movement needed
+    if (oldIndex === newIndex) return;
+
+    moveOwnTaskMutation.mutate({
+      taskId: activeTask.id,
+      newIndex: newIndex,
+      allTasks: tasksOfSameType,
+    });
+  };
 
   return (
     <>
@@ -174,89 +233,143 @@ function TasksTab({ gameId }: TasksTabProps) {
       </SimpleGrid>
 
       {/* TASK GRID */}
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap="2">
-        {taskTypes.map(type => {
-          const thisTasks = tasksByType[type];
-          const isDone = doneByType[type] === thisTasks.length;
-          return (
-            <Card.Root key={type} variant="outline" size="sm">
-              <Card.Body>
-                <Flex alignItems="center">
-                  <Heading mb="2">{type} tasks</Heading>
-                  <Text
-                    fontSize="xs"
-                    color={isDone ? 'fg.subtle' : undefined}
-                    ml="auto"
-                  >
-                    {doneByType[type]}/{thisTasks.length}
-                  </Text>
-                </Flex>
-                {thisTasks.length === 0 && (
-                  <Text color="fg.muted">no tasks yet</Text>
-                )}
-                <Stack gap="1">
-                  {thisTasks.map(task => {
-                    const isDone = task.status === TASK_STATUSES.DONE;
-                    const nextStatus = isDone
-                      ? TASK_STATUSES.OPEN
-                      : TASK_STATUSES.DONE;
-                    return (
-                      <Button
-                        key={task.id}
-                        variant="ghost"
-                        colorPalette="gray"
-                        fontWeight="normal"
-                        justifyContent="start"
-                        onClick={() =>
-                          updateTaskMutation.mutate({
-                            gameId,
-                            taskId: task.id,
-                            input: { status: nextStatus },
-                          })
-                        }
-                        p="1"
-                      >
-                        <Icon colorPalette="purple" color="colorPalette.solid">
-                          {isDone ? <LuCircleCheck /> : <LuCircle />}
-                        </Icon>
-                        <Tooltip content={task.text}>
-                          <Text
-                            truncate
-                            color={isDone ? 'fg.muted' : undefined}
-                            textDecoration={isDone ? 'line-through' : undefined}
-                          >
-                            {task.text}
-                          </Text>
-                        </Tooltip>
-                        <IconButton
-                          variant="ghost"
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SimpleGrid columns={{ base: 1, md: 3 }} gap="2" h="full">
+          {taskTypes.map(type => {
+            const thisTasks = tasksByType[type];
+            return (
+              <SortableContext
+                key={type}
+                items={thisTasks}
+                strategy={verticalListSortingStrategy}
+              >
+                <Card.Root key={type} variant="outline" size="sm" h="full">
+                  <Card.Body>
+                    <Flex alignItems="center">
+                      <Heading mb="2">{type} tasks</Heading>
+                      {!!thisTasks.length && (
+                        <ProgressCircle.Root
+                          value={(doneByType[type] / thisTasks.length) * 100}
                           size="xs"
-                          ms="auto"
-                          colorPalette="gray"
-                          onClick={e => {
-                            e.stopPropagation();
-                            deleteTaskMutation.mutate({
-                              gameId,
-                              taskId: task.id,
-                            });
-                          }}
+                          ml="auto"
                         >
-                          <LuTrash2 />
-                        </IconButton>
-                      </Button>
-                    );
-                  })}
-                </Stack>
-              </Card.Body>
-            </Card.Root>
-          );
-        })}
-      </SimpleGrid>
+                          <ProgressCircle.Circle>
+                            <ProgressCircle.Track />
+                            <ProgressCircle.Range />
+                          </ProgressCircle.Circle>
+                        </ProgressCircle.Root>
+                      )}
+                    </Flex>
+                    {thisTasks.length === 0 && (
+                      <Box>
+                        <Text color="fg.muted">no tasks yet</Text>
+                      </Box>
+                    )}
+                    <Stack gap="1">
+                      {thisTasks.map(task => {
+                        const isDone = task.status === TASK_STATUSES.DONE;
+                        const nextStatus = isDone
+                          ? TASK_STATUSES.OPEN
+                          : TASK_STATUSES.DONE;
+                        return (
+                          <SortableTask key={task.id} id={task.id}>
+                            <Flex
+                              key={task.id}
+                              justifyContent="start"
+                              _hover={{
+                                bg: 'colorPalette.subtle',
+                                cursor: 'pointer',
+                              }}
+                              borderRadius="lg"
+                              alignItems={'center'}
+                            >
+                              <IconButton
+                                variant="plain"
+                                size="sm"
+                                onPointerDown={e => e.stopPropagation()}
+                                _hover={{
+                                  color: 'fg',
+                                }}
+                                onClick={() =>
+                                  updateTaskMutation.mutate({
+                                    gameId,
+                                    taskId: task.id,
+                                    input: { status: nextStatus },
+                                  })
+                                }
+                              >
+                                {isDone ? <LuCircleCheck /> : <LuCircle />}
+                              </IconButton>
+                              <Tooltip content={task.text}>
+                                <Text
+                                  fontWeight="normal"
+                                  truncate
+                                  color={isDone ? 'fg.muted' : undefined}
+                                  textDecoration={
+                                    isDone ? 'line-through' : undefined
+                                  }
+                                >
+                                  {task.text}
+                                </Text>
+                              </Tooltip>
+                              <IconButton
+                                variant="plain"
+                                size="xs"
+                                ms="auto"
+                                colorPalette="gray"
+                                onPointerDown={e => e.stopPropagation()}
+                                _hover={{
+                                  color: 'fg.error',
+                                }}
+                                onClick={() =>
+                                  deleteTaskMutation.mutate({
+                                    gameId,
+                                    taskId: task.id,
+                                  })
+                                }
+                              >
+                                <LuTrash2 />
+                              </IconButton>
+                            </Flex>
+                          </SortableTask>
+                        );
+                      })}
+                    </Stack>
+                  </Card.Body>
+                </Card.Root>
+              </SortableContext>
+            );
+          })}
+        </SimpleGrid>
+      </DndContext>
     </>
   );
 }
 
 export default TasksTab;
+
+type SortableTaskProps = {
+  id: string;
+} & PropsWithChildren;
+function SortableTask({ id, children }: SortableTaskProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
 
 const splitByType = (tasks: Task[]) => {
   const result: { daily: Task[]; weekly: Task[]; other: Task[] } = {

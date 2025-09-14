@@ -106,8 +106,6 @@ export async function updateOwnTask({
   return TaskSchema.parse(updated);
 }
 
-// export function moveOwnTask({gameId, taskId, input: }:{gameId:string, taskId:string, input: })
-
 export async function rebalanceOwnTasks({
   gameId,
   input,

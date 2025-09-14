@@ -37,7 +37,7 @@ export const CreateTaskSchema = z.object({
 
 export const UpdateTaskSchema = z.object({
   text: TaskSchema.shape.text.optional(),
-  status: TaskSchema.shape.status.optional(),
+  status: z.enum(taskStatuses).optional(),
   position: TaskSchema.shape.position.optional(),
 });
 

@@ -8,7 +8,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import type { CreateTask, Task, UpdateTask } from './task-model';
+import type { CreateTask, Task } from './task-model';
 import {
   createOwnTask,
   deleteOwnTask,
@@ -67,18 +67,35 @@ export function useMoveOwnTaskMutation(gameId: string) {
     mutationFn: async ({
       taskId,
       newIndex,
-      siblings,
+      allTasks,
     }: {
       taskId: string;
-      input: UpdateTask;
       newIndex: number;
-      siblings: Task[];
+      allTasks: Task[]; // All tasks of the same type, including the one being moved
     }) => {
-      // sort siblings consistently by position first
-      const sorted = [...siblings].sort((a, b) => a.position - b.position);
+      // Find the task being moved
+      const movingTask = allTasks.find(t => t.id === taskId);
+      if (!movingTask) {
+        throw new Error(`Task with id ${taskId} not found`);
+      }
 
-      // handle trivial case: no siblings
-      if (sorted.length === 0) {
+      // Remove the moving task from the list to get siblings
+      const siblings = allTasks.filter(t => t.id !== taskId);
+
+      // Sort siblings by position for consistent ordering
+      const sortedSiblings = [...siblings].sort(
+        (a, b) => a.position - b.position,
+      );
+
+      // Validate newIndex bounds
+      if (newIndex < 0 || newIndex > sortedSiblings.length) {
+        throw new Error(
+          `Invalid newIndex: ${newIndex}. Must be between 0 and ${sortedSiblings.length}`,
+        );
+      }
+
+      // Handle trivial case: no siblings (first task of this type)
+      if (sortedSiblings.length === 0) {
         return updateOwnTask({
           gameId,
           taskId,
@@ -86,26 +103,31 @@ export function useMoveOwnTaskMutation(gameId: string) {
         });
       }
 
-      const positions = sorted.map(t => t.position);
+      const positions = sortedSiblings.map(t => t.position);
 
-      // calc candidate
+      // Calculate candidate position for the new index
       const candidate = calcNewPosition(positions, newIndex);
 
+      // Check boundaries around the insertion point
       const prev = positions[newIndex - 1] ?? Number.NEGATIVE_INFINITY;
       const next = positions[newIndex] ?? Number.POSITIVE_INFINITY;
 
       if (isOutOfSpace(candidate, prev, next)) {
-        // full rebalance, keeping id/position aligned
-        const rebalanced = rebalancePositions(sorted.length);
+        // Need full rebalance - create the final desired order
+        const reorderedTasks = [...sortedSiblings];
+        reorderedTasks.splice(newIndex, 0, movingTask);
+
+        const rebalanced = rebalancePositions(reorderedTasks.length);
         const input = {
-          tasks: sorted.map((t, i) => ({
+          tasks: reorderedTasks.map((t, i) => ({
             id: t.id,
             position: rebalanced[i],
           })),
         };
+
         await rebalanceOwnTasks({ gameId, input });
       } else {
-        // simple update
+        // Simple position update
         await updateOwnTask({
           gameId,
           taskId,

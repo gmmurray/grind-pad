@@ -50,11 +50,11 @@ const tabConfigs: {
   {
     value: GAME_TABS.NOTES,
     title: 'notes',
-    Component: TasksTab,
+    Component: () => <>NOTES</>,
   },
   {
     value: GAME_TABS.RESOURCES,
     title: 'resources',
-    Component: TasksTab,
+    Component: () => <>RESOURCES</>,
   },
 ];
