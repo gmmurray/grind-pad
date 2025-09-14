@@ -20,7 +20,7 @@ export async function getOwnGameTask(
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to retrieve task: no user provided');
+    console.warn('Unable to retrieve task: no user provided');
     return null;
   }
 
@@ -33,7 +33,9 @@ export async function getOwnGameTask(
   const validated = TaskSchema.safeParse(dbTask);
 
   if (!validated.success) {
-    console.log(`Invalid task retrieved from database with id: ${gameId}`);
+    console.warn(
+      `Invalid task retrieved from database with game id: ${gameId}`,
+    );
     return null;
   }
 
@@ -44,7 +46,7 @@ export async function getOwnGameTasks(gameId: string): Promise<Task[]> {
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to retrieve tasks: no user provided');
+    console.warn('Unable to retrieve tasks: no user provided');
     return [];
   }
 
@@ -63,7 +65,7 @@ export async function createOwnTask({
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to create task: no user provided');
+    console.warn('Unable to create task: no user provided');
     throw new Error('There was an error creating your task');
   }
 
@@ -86,7 +88,7 @@ export async function updateOwnTask({
   const existingTask = await getOwnGameTask(gameId, taskId);
 
   if (!existingTask) {
-    console.log(
+    console.warn(
       `Unable to update own task: task with id ${taskId} could not be found`,
     );
     throw new Error('There was an error saving your task');
@@ -114,7 +116,7 @@ export async function rebalanceOwnTasks({
   const game = await getOwnGame(gameId);
 
   if (!game) {
-    console.log(`Unable to rebalance tasks due to user's access`);
+    console.warn(`Unable to rebalance tasks due to user's access`);
     throw new Error('There was an error updating your tasks');
   }
 
@@ -135,7 +137,7 @@ export async function deleteOwnTask({
   const task = await getOwnGameTask(gameId, taskId);
 
   if (!task) {
-    console.log(`Unable to delete task due to user's access`);
+    console.warn(`Unable to delete task due to user's access`);
     throw new Error('There was an error deleting your task');
   }
 

@@ -1,5 +1,6 @@
 import { pbClient } from '@/lib/pocketbase';
 import { getUser } from '../auth/auth-service';
+import { createOwnMetadata } from '../metadata/metadata-service';
 import { GAMES_COLLECTION } from './game-constants';
 import {
   type CreateGame,
@@ -14,7 +15,7 @@ export async function getOwnGame(gameId: string): Promise<Game | null> {
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to retrieve game: no user provided');
+    console.warn('Unable to retrieve game: no user provided');
     return null;
   }
 
@@ -25,7 +26,7 @@ export async function getOwnGame(gameId: string): Promise<Game | null> {
   const validated = GameSchema.safeParse(dbGame);
 
   if (!validated.success) {
-    console.log(`Invalid game retrieved from database with id: ${gameId}`);
+    console.warn(`Invalid game retrieved from database with id: ${gameId}`);
     return null;
   }
 
@@ -36,7 +37,7 @@ export async function getOwnGames(page = 1, perPage = 20): Promise<Game[]> {
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to retrieve games: no user provided');
+    console.warn('Unable to retrieve games: no user provided');
     return [];
   }
 
@@ -49,7 +50,7 @@ export async function getOwnGames(page = 1, perPage = 20): Promise<Game[]> {
     const validated = GameSchema.safeParse(g);
 
     if (!validated.success) {
-      console.log(`Invalid game retrieved from database with id: ${g.id}`);
+      console.warn(`Invalid game retrieved from database with id: ${g.id}`);
       continue;
     }
     results.push(validated.data);
@@ -64,7 +65,7 @@ export async function createOwnGame(input: CreateGame): Promise<Game> {
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to create own game: no user provided');
+    console.warn('Unable to create own game: no user provided');
     throw new Error('There was an error creating your game');
   }
 
@@ -72,7 +73,17 @@ export async function createOwnGame(input: CreateGame): Promise<Game> {
     .collection(GAMES_COLLECTION)
     .create({ ...validatedInput, user: user.id });
 
-  return GameSchema.parse(dbGame);
+  const validatedDbGame = GameSchema.parse(dbGame);
+
+  // non-blocking metadata creation
+  createOwnMetadata({
+    gameId: validatedDbGame.id,
+    input: {
+      noteTags: [],
+    },
+  });
+
+  return validatedDbGame;
 }
 
 export async function updateOwnGame({
@@ -84,7 +95,7 @@ export async function updateOwnGame({
   const existingGame = await getOwnGame(gameId);
 
   if (!existingGame) {
-    console.log(
+    console.warn(
       `Unable to update own game: game with id ${gameId} could not be found`,
     );
     throw new Error('There was an error saving your game');

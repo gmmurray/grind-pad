@@ -27,6 +27,7 @@ import { LuEllipsisVertical, LuList, LuPlus } from 'react-icons/lu';
 import { useGameDialog } from '@/features/games/components/game-dialog';
 import GameTabs from '@/features/games/components/tabs/game-tabs';
 import type { Game } from '@/features/games/game-model';
+import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import { getOwnGameTasksQueryOptions } from '@/features/tasks/task-queries';
 import z from 'zod';
 
@@ -51,6 +52,9 @@ export const Route = createFileRoute('/_auth/home')({
     const selectedGameId = gameFromSearch ?? gameFromStorage;
 
     if (selectedGameId) {
+      queryClient.ensureQueryData(
+        getOwnGameMetadataQueryOptions(selectedGameId),
+      );
       if (!gameList.some(g => g.id === selectedGameId)) {
         await queryClient.ensureQueryData(
           getOwnGameQueryOptions(selectedGameId),
