@@ -1,5 +1,4 @@
 import { pbClient } from '@/lib/pocketbase';
-import { parseJsonArray, stringifyArray } from '@/utils/jsonArray';
 import { ClientResponseError } from 'pocketbase';
 import { getUser } from '../auth/auth-service';
 import { METADATA_COLLECTION } from './metadata-constants';
@@ -28,10 +27,7 @@ export async function getOwnGameMetadata(
       .collection(METADATA_COLLECTION)
       .getFirstListItem(`user="${user.id}" && game="${gameId}"`);
 
-    const validated = MetadataSchema.safeParse({
-      ...dbMetadata,
-      noteTags: parseJsonArray(dbMetadata.noteTags),
-    });
+    const validated = MetadataSchema.safeParse(dbMetadata);
 
     if (!validated.success) {
       console.warn(
@@ -74,13 +70,9 @@ export async function createOwnMetadata({
     ...validatedInput,
     user: user.id,
     game: gameId,
-    noteTags: stringifyArray(validatedInput.noteTags),
   });
 
-  return MetadataSchema.parse({
-    ...dbMetadata,
-    noteTags: parseJsonArray(dbMetadata.noteTags),
-  });
+  return MetadataSchema.parse(dbMetadata);
 }
 
 export async function updateOwnMetadata({
@@ -110,10 +102,7 @@ export async function updateOwnMetadata({
 
   const updated = await pbClient
     .collection(METADATA_COLLECTION)
-    .update(existingMetadata.id, {
-      ...validatedUpdates,
-      noteTags: stringifyArray(validatedUpdates.noteTags),
-    });
+    .update(existingMetadata.id, validatedUpdates);
 
   return MetadataSchema.parse(updated);
 }
