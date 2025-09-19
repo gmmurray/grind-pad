@@ -47,6 +47,13 @@ function NoteContentEditor() {
       borderWidth="1px"
       borderColor="border.disabled"
       borderRadius="sm"
+      css={{
+        '--editor-bg': 'bg',
+        '--editor-color': 'colors.fg',
+        '--editor-font-size': 'fontSizes.md',
+        '--editor-line-height': 'lineHeights.base',
+        '--editor-spacing': 'space.4',
+      }}
     >
       <MenuBar editor={editor} />
       <EditorContent editor={editor} />
@@ -212,23 +219,20 @@ function MenuBar({ editor }: { editor: Editor }) {
         <Separator orientation="vertical" />
 
         <Menu.Root>
-          <Menu.Trigger asChild>
+          <Menu.Trigger>
             <MenuBarButton
               title="Heading"
               isActive={
                 editorState.isHeading[1] ||
                 editorState.isHeading[2] ||
-                editorState.isHeading[3] ||
-                editorState.isHeading[4] ||
-                editorState.isHeading[5] ||
-                editorState.isHeading[6]
+                editorState.isHeading[3]
               }
               icon={LuHeading}
             />
           </Menu.Trigger>
           <Menu.Positioner>
             <Menu.Content>
-              {[...new Array(6)].map((_, idx) => (
+              {[...new Array(3)].map((_, idx) => (
                 <HeadingMenuItem
                   key={idx}
                   level={(idx + 1) as HeadingOptions['levels'][number]}
@@ -264,7 +268,7 @@ function MenuBar({ editor }: { editor: Editor }) {
           icon={LuSquareTerminal}
         />
         <MenuBarButton
-          title="Code block"
+          title="Blockquote"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           isActive={editorState.isBlockquote}
           icon={LuTextQuote}

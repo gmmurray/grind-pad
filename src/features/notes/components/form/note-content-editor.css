@@ -4,94 +4,103 @@
     margin-top: 0;
   }
 
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1rem;
-    margin: 1.25rem 1rem 1.25rem 0.4rem;
+  color: var(--editor-color);
+  font-size: var(--chakra-font-size-md);
+  line-height: var(--chakra-line-heights-base);
+  padding: var(--chakra-spacing-2);
+  outline: none;
 
-    li p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
-    }
-  }
 
-  /* Heading styles */
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.1;
-    margin-top: 2.5rem;
-    text-wrap: pretty;
-  }
-
-  h1,
-  h2 {
-    margin-top: 3.5rem;
-    margin-bottom: 1.5rem;
-  }
-
+  /* Headings */
   h1 {
-    font-size: 1.4rem;
+    font-size: var(--chakra-font-sizes-3xl);
+    font-weight: var(--chakra-font-weights-bold);
+    margin: var(--chakra-space-4) 0;
   }
 
   h2 {
-    font-size: 1.2rem;
+    font-size: var(--chakra-font-sizes-2xl);
+    font-weight: var(--chakra-font-weights-semibold);
+    margin: var(--chakra-space-3) 0;
   }
 
   h3 {
-    font-size: 1.1rem;
+    font-size: var(--chakra-font-sizes-xl);
+    font-weight: var(--chakra-font-weights-semibold);
+    margin: var(--chakra-space-2) 0;
   }
 
-  h4,
-  h5,
-  h6 {
-    font-size: 1rem;
+  /* Inline styles */
+  strong {
+    font-weight: var(--chakra-font-weights-bold);
   }
 
-  /* Code and preformatted text styles */
+  em {
+    font-style: italic;
+  }
+
+  u {
+    text-decoration: underline;
+  }
+
+  s {
+    text-decoration: line-through;
+  }
+
+  /* Code inline */
   code {
-    background-color: var(--purple-light);
-    border-radius: 0.4rem;
-    color: var(--black);
-    font-size: 0.85rem;
-    padding: 0.25em 0.3em;
+    font-family: var(--chakra-fonts-mono);
+    background: var(--chakra-colors-bg-muted);
+    padding: var(--chakra-spacing-1) var(--chakra-spacing-2);
+    border-radius: var(--chakra-radii-sm);
+    font-size: 0.95em;
   }
 
+  /* Code block */
   pre {
-    background: var(--black);
-    border-radius: 0.5rem;
-    color: var(--white);
-    font-family: 'JetBrainsMono', monospace;
-    margin: 1.5rem 0;
-    padding: 0.75rem 1rem;
-
-    code {
-      background: none;
-      color: inherit;
-      font-size: 0.8rem;
-      padding: 0;
-    }
+    font-family: var(--chakra-fonts-mono);
+    background: var(--chakra-colors-bg-muted);
+    color: var(--chakra-colors-fg-muted);
+    padding: var(--chakra-spacing-2);
+    border-radius: var(--chakra-radii-md);
+    overflow-x: auto;
+    font-size: var(--chakra-font-sizes-sm);
+    line-height: var(--chakra-line-heights-short);
   }
 
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  /* Lists */
+  ul {
+    list-style-type: disc;
+    margin-left: var(--chakra-spacing-6);
+    padding-left: var(--chakra-spacing-2);
+  }
+
+  ol {
+    list-style-type: decimal;
+    margin-left: var(--chakra-spacing-6);
+    padding-left: var(--chakra-spacing-2);
+  }
+
+  li {
+    margin-bottom: var(--chakra-spacing-1);
+  }
+
+  /* Blockquote */
   blockquote {
-    border-left: 3px solid var(--gray-3);
-    margin: 1.5rem 0;
-    padding-left: 1rem;
+    border-left: 4px solid var(--chakra-colors-gray-300);
+    margin: var(--chakra-spacing-4) 0;
+    padding-left: var(--chakra-spacing-3);
+    color: var(--chakra-colors-fg-muted);
+    font-style: italic;
   }
 
-  hr {
-    border: none;
-    border-top: 1px solid var(--gray-2);
-    margin: 2rem 0;
-  }
-
-  &:focus {
-    outline: none;
-  }
 
   min-height: 250px;
 
@@ -101,10 +110,6 @@
     float: left;
     height: 0;
     pointer-events: none;
-    font-style: italic;
-  }
-
-  em {
     font-style: italic;
   }
 }

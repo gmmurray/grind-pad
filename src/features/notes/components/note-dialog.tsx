@@ -1,6 +1,6 @@
 import { CloseButton, Dialog, Portal, useDialog } from '@chakra-ui/react';
-
 import type { CreateNote, Note, UpdateNote } from '../note-model';
+
 import NoteContentEditorProvider from './form/note-content-editor-provider';
 import NoteForm from './form/note-form';
 
@@ -16,8 +16,6 @@ function NoteDialog({ isOpen, onClose, onSubmit, note }: NoteDialogProps) {
     open: isOpen,
     onOpenChange: ({ open }) => !open && onClose(),
   });
-  // const [editorContent, setEditorContent] = useState(note?.content || '');
-  // const [selectedTags, setSelectedTags] = useState<string[]>(note?.tags || []);
 
   const isEdit = !!note;
 
@@ -29,51 +27,6 @@ function NoteDialog({ isOpen, onClose, onSubmit, note }: NoteDialogProps) {
   const handleCancel = () => {
     onClose();
   };
-
-  // const form = useForm({
-  //   defaultValues: {
-  //     title: note?.title || '',
-  //     content: note?.content || '',
-  //     tags: note?.tags || [],
-  //   },
-  //   onSubmit: async ({ value }) => {
-  //     try {
-  //       await onSubmit({
-  //         title: value.title,
-  //         content: editorContent,
-  //         tags: selectedTags,
-  //       });
-
-  //       toaster.create({
-  //         title: isEdit ? 'Note updated' : 'Note created',
-  //         type: 'success',
-  //       });
-
-  //       onClose();
-  //     } catch (error) {
-  //       toaster.create({
-  //         title: 'Error',
-  //         description: isEdit ? 'Error updating note' : 'Error creating note',
-  //         type: 'error',
-  //       });
-  //     }
-  //   },
-  //   validationLogic: revalidateLogic({
-  //     mode: 'submit',
-  //     modeAfterSubmission: 'change',
-  //   }),
-  //   validators: { onDynamic: CreateNoteSchema },
-  // });
-
-  // const addTag = (tag: string) => {
-  //   if (tag && !selectedTags.includes(tag)) {
-  //     setSelectedTags([...selectedTags, tag]);
-  //   }
-  // };
-
-  // const removeTag = (tagToRemove: string) => {
-  //   setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
-  // };
 
   return (
     <Dialog.RootProvider value={dialog} size={{ mdDown: 'full', md: 'lg' }}>
