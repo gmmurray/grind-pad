@@ -73,7 +73,7 @@ export async function searchOwnGameNotes(
   // optional tags filter
   if (tags?.length) {
     // must match *all* tags
-    const tagFilters = tags.map(tag => `tags?="${tag}"`);
+    const tagFilters = tags.map(tag => `tags~"${tag}"`);
     filters.push(tagFilters.join(' && '));
   }
 
