@@ -1,15 +1,7 @@
 import { toaster } from '@/components/ui/toaster';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import { alphabeticalDedupe } from '@/utils/dedupe';
-import {
-  Button,
-  Field,
-  Group,
-  Input,
-  Stack,
-  Tag,
-  Wrap,
-} from '@chakra-ui/react';
+import { Box, Button, Field, Group, Input, Stack } from '@chakra-ui/react';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useCurrentEditor } from '@tiptap/react';
@@ -21,7 +13,7 @@ import {
   type UpdateNote,
   UpdateNoteSchema,
 } from '../../note-model';
-import { TagInput } from '../tags';
+import { TagChips, TagInput } from '../tags';
 import NoteContentEditor from './note-content-editor';
 
 type NoteFormProps = {
@@ -128,16 +120,12 @@ function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
         </Field.Root>
 
         {(selectedTags.length ?? 0) > 0 && (
-          <Wrap>
-            {selectedTags.map(tag => (
-              <Tag.Root key={tag} p="1">
-                <Tag.Label>{tag}</Tag.Label>
-                <Tag.EndElement>
-                  <Tag.CloseTrigger onClick={() => handleRemoveTag(tag)} />
-                </Tag.EndElement>
-              </Tag.Root>
-            ))}
-          </Wrap>
+          <Box my="2">
+            <TagChips
+              tags={selectedTags}
+              onClose={tag => handleRemoveTag(tag)}
+            />
+          </Box>
         )}
 
         <Group gap="4" justifyContent="flex-end">

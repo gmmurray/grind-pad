@@ -1,6 +1,7 @@
+import { Tooltip } from '@/components/ui/tooltip';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import NoteDialog from '@/features/notes/components/note-dialog';
-import { TagFilter } from '@/features/notes/components/tags';
+import { TagChips, TagFilter } from '@/features/notes/components/tags';
 import {
   type CreateNote,
   DEFAULT_NOTE_SEARCH_PARAMS,
@@ -12,24 +13,36 @@ import {
 import {
   searchOwnGameNotesQueryOptions,
   useCreateOwnGameNoteMutation,
+  useDeleteOwnGameNoteMutation,
   useUpdateOwnGameNoteMutation,
 } from '@/features/notes/note-queries';
+import { toDate } from '@/lib/dayjs';
 import { SORT_DIRECTION } from '@/lib/zod/common';
 import {
+  Box,
   Button,
+  ButtonGroup,
+  Card,
   Flex,
   IconButton,
   Input,
   InputGroup,
   Menu,
+  Pagination,
   Portal,
   SimpleGrid,
-  Tag,
-  Wrap,
+  Text,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { LuArrowUpDown, LuPlus, LuSearch } from 'react-icons/lu';
+import {
+  LuArrowUpDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuEllipsisVertical,
+  LuPlus,
+  LuSearch,
+} from 'react-icons/lu';
 
 type NotesTabProps = {
   gameId: string;
@@ -45,9 +58,14 @@ function NotesTab({ gameId }: NotesTabProps) {
   const { data: metadata } = useSuspenseQuery(
     getOwnGameMetadataQueryOptions(gameId),
   );
-  const { data: notesData, isLoading: notesLoading } = useQuery(
-    searchOwnGameNotesQueryOptions(searchParams),
-  );
+  const {
+    data: {
+      items: notesData = [],
+      count: notesCount = 0,
+      totalPages: notesTotalPages = 0,
+    } = {},
+    isLoading: notesLoading,
+  } = useQuery(searchOwnGameNotesQueryOptions(searchParams));
 
   const handleSearch = () => {
     const title = searchInput.trim() ? searchInput.trim() : undefined;
@@ -94,6 +112,7 @@ function NotesTab({ gameId }: NotesTabProps) {
     setSearchParams(state => ({
       ...state,
       tags: undefined,
+      title: undefined,
       ...DEFAULT_NOTE_SEARCH_PARAMS,
     }));
   };
@@ -103,6 +122,7 @@ function NotesTab({ gameId }: NotesTabProps) {
 
   const createMutation = useCreateOwnGameNoteMutation(gameId);
   const updateMutation = useUpdateOwnGameNoteMutation(gameId);
+  const deleteMutation = useDeleteOwnGameNoteMutation(gameId);
 
   const handleNewNote = () => {
     setEditingNote(null);
@@ -123,6 +143,23 @@ function NotesTab({ gameId }: NotesTabProps) {
     } else {
       await createMutation.mutateAsync(input);
     }
+  };
+
+  const handleDelete = async (noteId: string) => {
+    if (!confirm('Are you sure?')) {
+      return;
+    }
+    await deleteMutation.mutateAsync({
+      gameId,
+      noteId,
+    });
+  };
+
+  const handlePageChange = (page: number) => {
+    setSearchParams(state => ({
+      ...state,
+      page,
+    }));
   };
 
   const currentSortValue =
@@ -176,19 +213,13 @@ function NotesTab({ gameId }: NotesTabProps) {
         </Flex>
       </SimpleGrid>
       {(searchParams.tags?.length ?? 0) > 0 && (
-        <Wrap my="2">
-          {searchParams.tags?.map(tag => (
-            <Tag.Root key={tag} p="1">
-              <Tag.Label>{tag}</Tag.Label>
-              <Tag.EndElement>
-                <Tag.CloseTrigger
-                  onClick={() => handleRemoveTag(tag)}
-                  disabled={notesLoading}
-                />
-              </Tag.EndElement>
-            </Tag.Root>
-          ))}
-        </Wrap>
+        <Box my="2">
+          <TagChips
+            tags={searchParams.tags ?? []}
+            onClose={tag => handleRemoveTag(tag)}
+            disabled={notesLoading}
+          />
+        </Box>
       )}
       <Flex my="2">
         <Menu.Root>
@@ -232,6 +263,110 @@ function NotesTab({ gameId }: NotesTabProps) {
         onSubmit={handleSubmit}
         note={editingNote}
       />
+
+      {notesData.length > 0 && (
+        <>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="2" my="4">
+            {notesData.map(note => {
+              return (
+                <Card.Root
+                  key={note.id}
+                  variant="subtle"
+                  _hover={{ opacity: 0.9, cursor: 'pointer' }}
+                  onClick={() => handleEditNote(note)}
+                >
+                  <Card.Body gap="1">
+                    <Tooltip content={note.title}>
+                      <Card.Title lineClamp={1}>{note.title}</Card.Title>
+                    </Tooltip>
+                    {note.tags.length > 0 && (
+                      <Box>
+                        <TagChips tags={note.tags} />
+                      </Box>
+                    )}
+                    <Card.Description mb="4">
+                      {getPreview(note.content)}
+                    </Card.Description>
+                  </Card.Body>
+                  <Card.Footer>
+                    <Text color="fg.muted" fontSize="xs">
+                      {toDate(note.updated)}
+                    </Text>
+                    <Menu.Root>
+                      <Menu.Trigger asChild onClick={e => e.stopPropagation()}>
+                        <IconButton
+                          size="xs"
+                          variant="ghost"
+                          rounded="full"
+                          ml="auto"
+                        >
+                          <LuEllipsisVertical />
+                        </IconButton>
+                      </Menu.Trigger>
+                      <Portal>
+                        <Menu.Positioner onClick={e => e.stopPropagation()}>
+                          <Menu.Content>
+                            <Menu.Item
+                              value="edit"
+                              onClick={() => handleEditNote(note)}
+                            >
+                              Edit note
+                            </Menu.Item>
+                            <Menu.Item
+                              value="delete"
+                              color="fg.error"
+                              _hover={{ bg: 'bg.error', color: 'fg.error' }}
+                              disabled={deleteMutation.isPending}
+                              onClick={() => handleDelete(note.id)}
+                            >
+                              Delete note
+                            </Menu.Item>
+                          </Menu.Content>
+                        </Menu.Positioner>
+                      </Portal>
+                    </Menu.Root>
+                  </Card.Footer>
+                </Card.Root>
+              );
+            })}
+          </SimpleGrid>
+
+          {notesTotalPages > 1 && (
+            <Flex justifyContent="center">
+              <Pagination.Root
+                count={notesCount}
+                pageSize={searchParams.perPage}
+                page={searchParams.page}
+                onPageChange={e => handlePageChange(e.page)}
+              >
+                <ButtonGroup variant="ghost" size="sm">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton>
+                      <LuChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+
+                  <Pagination.Items
+                    render={page => (
+                      <IconButton
+                        variant={{ base: 'ghost', _selected: 'outline' }}
+                      >
+                        {page.value}
+                      </IconButton>
+                    )}
+                  />
+
+                  <Pagination.NextTrigger asChild>
+                    <IconButton>
+                      <LuChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Flex>
+          )}
+        </>
+      )}
     </>
   );
 }
@@ -247,4 +382,12 @@ const sortOptions = {
     label: 'title',
     value: { sortBy: NOTES_SORT_BY.TITLE, sortDir: SORT_DIRECTION.ASC },
   },
+};
+
+const getPreview = (html: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const firstP =
+    doc.querySelector('p')?.textContent || doc.body.textContent || '';
+  return firstP.length > 150 ? `${firstP.substring(0, 150)}...` : firstP;
 };

@@ -2,6 +2,8 @@ import {
   Button,
   Combobox,
   Portal,
+  Tag,
+  Wrap,
   createListCollection,
 } from '@chakra-ui/react';
 import { type ReactNode, useMemo, useState } from 'react';
@@ -137,5 +139,30 @@ export function TagFilter({
       loading={loading}
       usePortal
     />
+  );
+}
+
+type TagChipsProps = {
+  tags: string[];
+  onClose?: (value: string) => void;
+  disabled?: boolean;
+};
+export function TagChips({ tags, disabled, onClose }: TagChipsProps) {
+  return (
+    <Wrap>
+      {tags.map(tag => (
+        <Tag.Root key={tag} p="1">
+          <Tag.Label>{tag}</Tag.Label>
+          {onClose && (
+            <Tag.EndElement>
+              <Tag.CloseTrigger
+                onClick={() => onClose(tag)}
+                disabled={disabled}
+              />
+            </Tag.EndElement>
+          )}
+        </Tag.Root>
+      ))}
+    </Wrap>
   );
 }

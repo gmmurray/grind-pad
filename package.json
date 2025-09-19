@@ -31,6 +31,7 @@
     "@tiptap/extensions": "^3.4.4",
     "@tiptap/react": "^3.4.4",
     "@tiptap/starter-kit": "^3.4.4",
+    "dayjs": "^1.11.18",
     "next-themes": "^0.4.6",
     "pocketbase": "^0.26.2",
     "react": "^19.0.0",

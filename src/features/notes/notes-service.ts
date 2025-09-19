@@ -44,12 +44,12 @@ export async function getOwnGameNote(
 
 export async function searchOwnGameNotes(
   searchInput: SearchNotesParams,
-): Promise<Note[]> {
+): Promise<{ items: Note[]; count: number; totalPages: number }> {
   const user = getUser();
 
   if (!user) {
     console.warn('Unable to search notes: no user provided');
-    return [];
+    return { items: [], count: 0, totalPages: 0 };
   }
 
   const validatedSearch = SearchNotesParamsSchema.safeParse(searchInput);
@@ -88,7 +88,12 @@ export async function searchOwnGameNotes(
       sort: sortString,
     });
 
-  return validateModelDbList(dbNotes.items, NoteSchema);
+  const result = validateModelDbList(dbNotes.items, NoteSchema);
+  return {
+    items: result,
+    count: dbNotes.totalItems,
+    totalPages: dbNotes.totalPages,
+  };
 }
 
 export async function createOwnGameNote({

@@ -47,13 +47,6 @@ function NoteContentEditor() {
       borderWidth="1px"
       borderColor="border.disabled"
       borderRadius="sm"
-      css={{
-        '--editor-bg': 'bg',
-        '--editor-color': 'colors.fg',
-        '--editor-font-size': 'fontSizes.md',
-        '--editor-line-height': 'lineHeights.base',
-        '--editor-spacing': 'space.4',
-      }}
     >
       <MenuBar editor={editor} />
       <EditorContent editor={editor} />
