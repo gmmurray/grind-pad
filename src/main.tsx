@@ -1,14 +1,16 @@
+import './globals.css'
+
+import { AuthProvider } from './features/auth/provider/auth-provider';
 import { QueryClientProvider } from '@tanstack/react-query';
+import ReactDOM from 'react-dom/client';
 import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
-import ReactDOM from 'react-dom/client';
-import { UIProvider } from './components/ui/provider';
 import { Toaster } from './components/ui/toaster';
-import { AuthProvider } from './features/auth/provider/auth-provider';
-import { useAuth } from './features/auth/provider/use-auth';
+import { UIProvider } from './components/ui/provider';
 import { queryClient } from './lib/queryClient';
-import { router } from './lib/router';
 import reportWebVitals from './reportWebVitals';
+import { router } from './lib/router';
+import { useAuth } from './features/auth/provider/use-auth';
 
 // Render the app
 const rootElement = document.getElementById('app');

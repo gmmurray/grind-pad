@@ -1,5 +1,6 @@
+import { SORT_DIRECTION, sortDir } from '@/lib/zod/common';
+
 import { TimestampSchema } from '@/lib/pocketbase';
-import { sortDir } from '@/lib/zod/common';
 import z from 'zod';
 
 export const NoteSchema = z
@@ -32,14 +33,23 @@ export const NOTES_SORT_BY = {
 export const notesSortBy = Object.values(NOTES_SORT_BY);
 export type NotesSortBy = (typeof notesSortBy)[number];
 
+export const DEFAULT_NOTE_SEARCH_PARAMS = {
+  page: 1,
+  perPage: 6,
+  sortBy: NOTES_SORT_BY.UPDATED,
+  sortDir: SORT_DIRECTION.DESC,
+};
 export const SearchNotesParamsSchema = z.object({
   gameId: z.string(),
   title: z.string().optional(),
   tags: z.array(z.string()).optional(),
-  page: z.number().optional().default(1),
-  perPage: z.number().optional().default(5),
-  sortBy: z.enum(notesSortBy).default(NOTES_SORT_BY.UPDATED),
-  sortDir: sortDir,
+  page: z.number().optional().default(DEFAULT_NOTE_SEARCH_PARAMS.page),
+  perPage: z.number().optional().default(DEFAULT_NOTE_SEARCH_PARAMS.perPage),
+  sortBy: z
+    .enum(notesSortBy)
+    .optional()
+    .default(DEFAULT_NOTE_SEARCH_PARAMS.sortBy),
+  sortDir: sortDir.default(DEFAULT_NOTE_SEARCH_PARAMS.sortDir),
 });
 
 export type Note = z.infer<typeof NoteSchema>;

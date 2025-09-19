@@ -60,7 +60,7 @@ export async function createOwnMetadata({
   const user = getUser();
 
   if (!user) {
-    console.log('Unable to create metadata: no user provided');
+    console.warn('Unable to create metadata: no user provided');
     throw new Error('There was an error creating your metadata');
   }
 

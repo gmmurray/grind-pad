@@ -28,6 +28,8 @@ import { useGameDialog } from '@/features/games/components/game-dialog';
 import GameTabs from '@/features/games/components/tabs/game-tabs';
 import type { Game } from '@/features/games/game-model';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
+import { DEFAULT_NOTE_SEARCH_PARAMS } from '@/features/notes/note-model';
+import { searchOwnGameNotesQueryOptions } from '@/features/notes/note-queries';
 import { getOwnGameTasksQueryOptions } from '@/features/tasks/task-queries';
 import z from 'zod';
 
@@ -63,11 +65,29 @@ export const Route = createFileRoute('/_auth/home')({
 
       if (tabFromSearch === GAME_TABS.NOTES) {
         // prefetch tasks and resources
-        // ensure notes data
+        queryClient.prefetchQuery(getOwnGameTasksQueryOptions(selectedGameId));
+        await queryClient.ensureQueryData(
+          searchOwnGameNotesQueryOptions({
+            ...DEFAULT_NOTE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
       } else if (tabFromSearch === GAME_TABS.RESOURCES) {
+        queryClient.prefetchQuery(
+          searchOwnGameNotesQueryOptions({
+            ...DEFAULT_NOTE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
         // prefetch tasks and notes
         // ensure resources data
       } else {
+        queryClient.prefetchQuery(
+          searchOwnGameNotesQueryOptions({
+            ...DEFAULT_NOTE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
         // (tab = tasks or tab = undefined)
         // prefetch notes and resources
         await queryClient.ensureQueryData(

@@ -5,5 +5,8 @@ export const SORT_DIRECTION = {
   DESC: 'desc',
 } as const;
 export const sortDirections = Object.values(SORT_DIRECTION);
-export const sortDir = z.enum(sortDirections);
+export const sortDir = z
+  .enum(sortDirections)
+  .optional()
+  .default(SORT_DIRECTION.ASC);
 export type SortDir = z.infer<typeof sortDir>;

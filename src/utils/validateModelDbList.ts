@@ -10,7 +10,7 @@ export function validateModelDbList<
     const validated = schema.safeParse(item);
 
     if (!validated.success) {
-      console.log(
+      console.warn(
         `Invalid element retrieved from database with id: ${item.id}`,
       );
       continue;

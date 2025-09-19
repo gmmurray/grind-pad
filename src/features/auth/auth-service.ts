@@ -13,7 +13,7 @@ export const getUser = (input?: AuthRecord) => {
   const validated = UserSchema.safeParse(authRecord);
 
   if (!validated.success) {
-    console.log('Invalid user provided');
+    console.warn('Invalid user provided');
     return null;
   }
 

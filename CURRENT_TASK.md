@@ -60,11 +60,11 @@ Implement a notes system for game session management, allowing users to create r
 
 ### 1. Data Layer
 
-- [ ] Create note model/schema with Zod validation
-- [ ] Create game metadata model/schema
-- [ ] Implement note service functions (CRUD)
-- [ ] Implement game metadata service functions
-- [ ] Create TanStack Query hooks for notes and metadata
+- [x] Create note model/schema with Zod validation
+- [x] Create game metadata model/schema
+- [x] Implement note service functions (CRUD)
+- [x] Implement game metadata service functions
+- [x] Create TanStack Query hooks for notes and metadata
 
 ### 2. Components
 
@@ -76,8 +76,8 @@ Implement a notes system for game session management, allowing users to create r
 
 ### 3. State Management
 
-- [ ] Query keys for notes and metadata
-- [ ] Mutation hooks with proper invalidation
+- [x] Query keys for notes and metadata
+- [x] Mutation hooks with proper invalidation
 - [ ] Tag auto-complete logic
 - [ ] Search/filter state management
 

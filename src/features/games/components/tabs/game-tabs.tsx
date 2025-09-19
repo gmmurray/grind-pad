@@ -2,6 +2,7 @@ import { Tabs } from '@chakra-ui/react';
 
 import type { JSX } from 'react';
 import { GAME_TABS, type GameTab } from './constants';
+import NotesTab from './notes-tab';
 import TasksTab from './tasks-tab';
 
 type GameTabsProps = {
@@ -50,7 +51,7 @@ const tabConfigs: {
   {
     value: GAME_TABS.NOTES,
     title: 'notes',
-    Component: () => <>NOTES</>,
+    Component: NotesTab,
   },
   {
     value: GAME_TABS.RESOURCES,
