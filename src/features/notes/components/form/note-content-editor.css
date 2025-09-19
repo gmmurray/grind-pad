@@ -15,19 +15,19 @@
   h1 {
     font-size: var(--chakra-font-sizes-3xl);
     font-weight: var(--chakra-font-weights-bold);
-    margin: var(--chakra-space-4) 0;
+    margin: var(--chakra-spacing-4) 0;
   }
 
   h2 {
     font-size: var(--chakra-font-sizes-2xl);
     font-weight: var(--chakra-font-weights-semibold);
-    margin: var(--chakra-space-3) 0;
+    margin: var(--chakra-spacing-3) 0;
   }
 
   h3 {
     font-size: var(--chakra-font-sizes-xl);
     font-weight: var(--chakra-font-weights-semibold);
-    margin: var(--chakra-space-2) 0;
+    margin: var(--chakra-spacing-2) 0;
   }
 
   /* Inline styles */
@@ -60,7 +60,6 @@
   pre {
     font-family: var(--chakra-fonts-mono);
     background: var(--chakra-colors-bg-muted);
-    color: var(--chakra-colors-fg-muted);
     padding: var(--chakra-spacing-2);
     border-radius: var(--chakra-radii-md);
     overflow-x: auto;

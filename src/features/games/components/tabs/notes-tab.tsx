@@ -1,5 +1,6 @@
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import NoteDialog from '@/features/notes/components/note-dialog';
+import { TagFilter } from '@/features/notes/components/tags';
 import {
   type CreateNote,
   DEFAULT_NOTE_SEARCH_PARAMS,
@@ -16,7 +17,6 @@ import {
 import { SORT_DIRECTION } from '@/lib/zod/common';
 import {
   Button,
-  Combobox,
   Flex,
   IconButton,
   Input,
@@ -26,10 +26,9 @@ import {
   SimpleGrid,
   Tag,
   Wrap,
-  createListCollection,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { LuArrowUpDown, LuPlus, LuSearch } from 'react-icons/lu';
 
 type NotesTabProps = {
@@ -227,6 +226,7 @@ function NotesTab({ gameId }: NotesTabProps) {
 
       {/* NOTE EDITOR */}
       <NoteDialog
+        gameId={gameId}
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleSubmit}
@@ -237,68 +237,6 @@ function NotesTab({ gameId }: NotesTabProps) {
 }
 
 export default NotesTab;
-
-type TagFilterProps = {
-  selectedTags: string[];
-  options: string[];
-  loading: boolean;
-  onChange: (value: string[]) => void;
-};
-function TagFilter({
-  selectedTags,
-  options,
-  loading,
-  onChange,
-}: TagFilterProps) {
-  const [searchValue, setSearchValue] = useState('');
-
-  const filteredTags = useMemo(
-    () =>
-      options.filter(o => o.toLowerCase().includes(searchValue.toLowerCase())),
-    [searchValue, options],
-  );
-
-  const collection = useMemo(
-    () => createListCollection({ items: filteredTags }),
-    [filteredTags],
-  );
-
-  return (
-    <Combobox.Root
-      disabled={loading}
-      multiple
-      closeOnSelect
-      value={selectedTags}
-      collection={collection}
-      onValueChange={details => onChange(details.value)}
-      onInputValueChange={details => setSearchValue(details.inputValue)}
-    >
-      <Combobox.Control>
-        <Combobox.Input placeholder="Filter by tags" />
-        <Combobox.IndicatorGroup>
-          <Combobox.Trigger />
-        </Combobox.IndicatorGroup>
-      </Combobox.Control>
-
-      <Portal>
-        <Combobox.Positioner>
-          <Combobox.Content>
-            <Combobox.ItemGroup>
-              <Combobox.ItemGroupLabel>Tags</Combobox.ItemGroupLabel>
-              {filteredTags.map(item => (
-                <Combobox.Item key={item} item={item}>
-                  {item}
-                  <Combobox.ItemIndicator />
-                </Combobox.Item>
-              ))}
-              <Combobox.Empty>No tags found</Combobox.Empty>
-            </Combobox.ItemGroup>
-          </Combobox.Content>
-        </Combobox.Positioner>
-      </Portal>
-    </Combobox.Root>
-  );
-}
 
 const sortOptions = {
   latest: {

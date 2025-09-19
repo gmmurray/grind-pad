@@ -5,13 +5,20 @@ import NoteContentEditorProvider from './form/note-content-editor-provider';
 import NoteForm from './form/note-form';
 
 type NoteDialogProps = {
+  gameId: string;
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (input: CreateNote | UpdateNote) => Promise<void>;
   note?: Note | null; // null for add mode, Note for edit mode
 };
 
-function NoteDialog({ isOpen, onClose, onSubmit, note }: NoteDialogProps) {
+function NoteDialog({
+  gameId,
+  isOpen,
+  onClose,
+  onSubmit,
+  note,
+}: NoteDialogProps) {
   const dialog = useDialog({
     open: isOpen,
     onOpenChange: ({ open }) => !open && onClose(),
@@ -41,6 +48,7 @@ function NoteDialog({ isOpen, onClose, onSubmit, note }: NoteDialogProps) {
             <Dialog.Body>
               <NoteContentEditorProvider note={note}>
                 <NoteForm
+                  gameId={gameId}
                   note={note}
                   onSubmit={handleSubmit}
                   onCancel={handleCancel}

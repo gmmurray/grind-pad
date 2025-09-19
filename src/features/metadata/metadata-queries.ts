@@ -6,6 +6,7 @@ import {
 import { getOwnGameMetadata, updateOwnMetadata } from './metadata-service';
 
 import { buildMutationHook } from '@/hooks/queries';
+import { alphabeticalDedupe } from '@/utils/dedupe';
 import type { Metadata } from './metadata-model';
 
 export const METADATA_QUERY_KEY = 'metadata';
@@ -46,11 +47,7 @@ export function useUpdateOwnMetadataNoteTagsMutation(gameId: string) {
       let updatedTags: Metadata['noteTags'];
 
       if (operation === 'add') {
-        const deduped = new Set([...existingTags, ...changedTags]);
-
-        updatedTags = [...deduped.values()].sort((a, b) =>
-          a.localeCompare(b, undefined, { sensitivity: 'base' }),
-        );
+        updatedTags = alphabeticalDedupe([...existingTags, ...changedTags]);
       } else if (operation === 'remove') {
         updatedTags = existingTags.filter(t => !changedTags.includes(t));
       } else {

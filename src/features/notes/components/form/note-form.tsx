@@ -1,8 +1,19 @@
 import { toaster } from '@/components/ui/toaster';
-import { Button, Field, Group, Input, Stack } from '@chakra-ui/react';
+import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
+import { alphabeticalDedupe } from '@/utils/dedupe';
+import {
+  Button,
+  Field,
+  Group,
+  Input,
+  Stack,
+  Tag,
+  Wrap,
+} from '@chakra-ui/react';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useCurrentEditor } from '@tiptap/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   type CreateNote,
   CreateNoteSchema,
@@ -10,17 +21,36 @@ import {
   type UpdateNote,
   UpdateNoteSchema,
 } from '../../note-model';
+import { TagInput } from '../tags';
 import NoteContentEditor from './note-content-editor';
 
 type NoteFormProps = {
+  gameId: string;
   note?: Note | null;
   onSubmit: (input: CreateNote | UpdateNote) => Promise<void>;
   onCancel: () => void;
 };
 
-function NoteForm({ note, onSubmit, onCancel }: NoteFormProps) {
+function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
   const { editor: contentEditor } = useCurrentEditor();
   const [selectedTags, setSelectedTags] = useState<string[]>(note?.tags || []);
+
+  const { data: metadata } = useSuspenseQuery(
+    getOwnGameMetadataQueryOptions(gameId),
+  );
+
+  const initialTags = useMemo(
+    () =>
+      alphabeticalDedupe([
+        ...(metadata?.noteTags ?? []),
+        ...(note?.tags ?? []),
+      ]),
+    [metadata?.noteTags, note?.tags],
+  );
+
+  const handleRemoveTag = (tag: string) => {
+    setSelectedTags(state => state.filter(t => t !== tag));
+  };
 
   const isEdit = !!note;
 
@@ -57,15 +87,6 @@ function NoteForm({ note, onSubmit, onCancel }: NoteFormProps) {
     validators: { onDynamic: isEdit ? UpdateNoteSchema : CreateNoteSchema },
   });
 
-  const addTag = (tag: string) => {
-    if (tag && !selectedTags.includes(tag)) {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
-  };
   return (
     <form
       onSubmit={e => {
@@ -74,8 +95,7 @@ function NoteForm({ note, onSubmit, onCancel }: NoteFormProps) {
         form.handleSubmit();
       }}
     >
-      <Stack gap="4">
-        {/* Title Field */}
+      <Stack gap="2">
         <form.Field name="title">
           {field => (
             <Field.Root invalid={!field.state.meta.isValid}>
@@ -93,70 +113,33 @@ function NoteForm({ note, onSubmit, onCancel }: NoteFormProps) {
           )}
         </form.Field>
 
-        {/* Content Editor */}
         <Field.Root>
           <Field.Label>Content</Field.Label>
           <NoteContentEditor />
         </Field.Root>
 
-        {/* Tags Field - Simple for now */}
         <Field.Root>
           <Field.Label>Tags</Field.Label>
-          <Input
-            placeholder="Add a tag and press Enter..."
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                const target = e.target as HTMLInputElement;
-                addTag(target.value.trim());
-                target.value = '';
-              }
-            }}
+          <TagInput
+            initialTags={initialTags}
+            selectedTags={selectedTags}
+            onChange={value => setSelectedTags(value)}
           />
-          {selectedTags.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                gap: '8px',
-                flexWrap: 'wrap',
-                marginTop: '8px',
-              }}
-            >
-              {selectedTags.map(tag => (
-                <span
-                  key={tag}
-                  style={{
-                    background: '#805ad5',
-                    color: 'white',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'white',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                    }}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
         </Field.Root>
 
-        {/* Form Actions */}
+        {(selectedTags.length ?? 0) > 0 && (
+          <Wrap>
+            {selectedTags.map(tag => (
+              <Tag.Root key={tag} p="1">
+                <Tag.Label>{tag}</Tag.Label>
+                <Tag.EndElement>
+                  <Tag.CloseTrigger onClick={() => handleRemoveTag(tag)} />
+                </Tag.EndElement>
+              </Tag.Root>
+            ))}
+          </Wrap>
+        )}
+
         <Group gap="4" justifyContent="flex-end">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
