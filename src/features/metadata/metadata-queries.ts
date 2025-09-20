@@ -27,24 +27,26 @@ export const useUpdateOwnMetadataMutation = (gameId: string) =>
     metadataQueryKeys.getOwnGameMetadata(gameId),
   )();
 
-export function useUpdateOwnMetadataNoteTagsMutation(gameId: string) {
+export function useUpdateOwnMetadataTagsMutation(gameId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       operation,
       changedTags,
+      field,
     }: {
       operation: 'add' | 'remove';
       changedTags: string[];
+      field: 'noteTags' | 'resourceTags';
     }) => {
       const metadata = await queryClient.ensureQueryData(
         getOwnGameMetadataQueryOptions(gameId),
       );
 
-      const existingTags = metadata?.noteTags ?? [];
+      const existingTags = metadata?.[field] ?? [];
 
-      let updatedTags: Metadata['noteTags'];
+      let updatedTags: Metadata[typeof field];
 
       if (operation === 'add') {
         updatedTags = alphabeticalDedupe([...existingTags, ...changedTags]);
@@ -52,11 +54,11 @@ export function useUpdateOwnMetadataNoteTagsMutation(gameId: string) {
         updatedTags = existingTags.filter(t => !changedTags.includes(t));
       } else {
         throw new Error(
-          'Unable to update metadata note tags: invalid operation provided',
+          `Unable to update metadata ${field}: invalid operation provided`,
         );
       }
 
-      return updateOwnMetadata({ gameId, input: { noteTags: updatedTags } });
+      return updateOwnMetadata({ gameId, input: { [field]: updatedTags } });
     },
     onSuccess: () =>
       queryClient.invalidateQueries(getOwnGameMetadataQueryOptions(gameId)),

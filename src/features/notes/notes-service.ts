@@ -1,6 +1,7 @@
 import { pbClient } from '@/lib/pocketbase';
 import { validateModelDbList } from '@/utils/validateModelDbList';
 import { getUser } from '../auth/auth-service';
+import type { SearchResult } from '../shared/types';
 import { NOTES_COLLECTION } from './note-constants';
 import {
   type CreateNote,
@@ -44,7 +45,7 @@ export async function getOwnGameNote(
 
 export async function searchOwnGameNotes(
   searchInput: SearchNotesParams,
-): Promise<{ items: Note[]; count: number; totalPages: number }> {
+): Promise<SearchResult<Note>> {
   const user = getUser();
 
   if (!user) {

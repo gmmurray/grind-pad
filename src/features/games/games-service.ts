@@ -80,6 +80,7 @@ export async function createOwnGame(input: CreateGame): Promise<Game> {
     gameId: validatedDbGame.id,
     input: {
       noteTags: [],
+      resourceTags: [],
     },
   });
 

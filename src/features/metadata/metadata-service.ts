@@ -43,6 +43,7 @@ export async function getOwnGameMetadata(
         gameId,
         input: {
           noteTags: [],
+          resourceTags: [],
         },
       });
     } else {

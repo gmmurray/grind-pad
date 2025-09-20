@@ -12,7 +12,7 @@ import {
 } from './notes-service';
 
 import { buildMutationHook } from '@/hooks/queries';
-import { useUpdateOwnMetadataNoteTagsMutation } from '../metadata/metadata-queries';
+import { useUpdateOwnMetadataTagsMutation } from '../metadata/metadata-queries';
 
 export const NOTES_QUERY_KEY = 'notes';
 
@@ -38,7 +38,7 @@ export const searchOwnGameNotesQueryOptions = (
 
 export function useCreateOwnGameNoteMutation(gameId: string) {
   const queryClient = useQueryClient();
-  const metadataMutation = useUpdateOwnMetadataNoteTagsMutation(gameId);
+  const metadataMutation = useUpdateOwnMetadataTagsMutation(gameId);
 
   return useMutation({
     mutationFn: (input: CreateNote) => createOwnGameNote({ gameId, input }),
@@ -48,6 +48,7 @@ export function useCreateOwnGameNoteMutation(gameId: string) {
         metadataMutation.mutate({
           operation: 'add',
           changedTags: note.tags,
+          field: 'noteTags',
         });
       }
 
@@ -60,7 +61,7 @@ export function useCreateOwnGameNoteMutation(gameId: string) {
 
 export function useUpdateOwnGameNoteMutation(gameId: string) {
   const queryClient = useQueryClient();
-  const metadataMutation = useUpdateOwnMetadataNoteTagsMutation(gameId);
+  const metadataMutation = useUpdateOwnMetadataTagsMutation(gameId);
 
   return useMutation({
     mutationFn: ({
@@ -76,6 +77,7 @@ export function useUpdateOwnGameNoteMutation(gameId: string) {
         metadataMutation.mutate({
           operation: 'add',
           changedTags: note.tags,
+          field: 'noteTags',
         });
       }
 
