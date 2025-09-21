@@ -4,7 +4,7 @@ import {
 } from '@/features/games/components/tabs/constants';
 import {
   getOwnGameQueryOptions,
-  getOwnGamesQueryOptions,
+  getOwnHomeGamesQueryOptions,
 } from '@/features/games/game-queries';
 import {
   Box,
@@ -57,7 +57,7 @@ export const Route = createFileRoute('/_auth/home')({
     deps: { game: gameFromSearch, tab: tabFromSearch },
   }) => {
     const gameList = await queryClient.ensureQueryData(
-      getOwnGamesQueryOptions(1, 5),
+      getOwnHomeGamesQueryOptions(),
     );
     const gameFromStorage =
       window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined;
@@ -126,7 +126,7 @@ export const Route = createFileRoute('/_auth/home')({
 
 function RouteComponent() {
   const { open } = useGameDialog();
-  const gamesQuery = useSuspenseQuery(getOwnGamesQueryOptions(1, 5));
+  const gamesQuery = useSuspenseQuery(getOwnHomeGamesQueryOptions());
   const navigate = useNavigate({ from: Route.fullPath });
   const { game: gameIdParam, tab } = Route.useSearch();
 

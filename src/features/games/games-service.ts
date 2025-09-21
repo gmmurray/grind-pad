@@ -1,4 +1,5 @@
 import { pbClient } from '@/lib/pocketbase';
+import { validateModelDbList } from '@/utils/validateModelDbList';
 import { getUser } from '../auth/auth-service';
 import { createOwnMetadata } from '../metadata/metadata-service';
 import { GAMES_COLLECTION } from './game-constants';
@@ -31,6 +32,22 @@ export async function getOwnGame(gameId: string): Promise<Game | null> {
   }
 
   return validated.data;
+}
+
+export async function getOwnHomeGames(): Promise<Game[]> {
+  const user = getUser();
+
+  if (!user) {
+    console.warn('Unable to retrieve games: no user provided');
+    return [];
+  }
+
+  const dbGames = await pbClient.collection(GAMES_COLLECTION).getList(1, 5, {
+    filter: `user="${user.id}"`,
+    sort: '-created',
+  });
+
+  return validateModelDbList(dbGames.items, GameSchema);
 }
 
 export async function getOwnGames(page = 1, perPage = 20): Promise<Game[]> {

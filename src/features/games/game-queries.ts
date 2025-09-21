@@ -3,6 +3,7 @@ import {
   deleteOwnGame,
   getOwnGame,
   getOwnGames,
+  getOwnHomeGames,
   updateOwnGame,
 } from './games-service';
 
@@ -15,6 +16,7 @@ export const gameQueryKeys = {
   getOwnGame: (gameId: string) => [GAMES_QUERY_KEY, 'own-game', { gameId }],
   getOwnGames: {
     all: [GAMES_QUERY_KEY, 'own-games'],
+    home: [GAMES_QUERY_KEY, 'own-games', 'home'],
     paged: (page: number, perPage: number) => [
       GAMES_QUERY_KEY,
       'own-games',
@@ -27,6 +29,12 @@ export const getOwnGameQueryOptions = (gameId: string) =>
   queryOptions({
     queryKey: gameQueryKeys.getOwnGame(gameId),
     queryFn: () => getOwnGame(gameId),
+  });
+
+export const getOwnHomeGamesQueryOptions = () =>
+  queryOptions({
+    queryKey: gameQueryKeys.getOwnGames.home,
+    queryFn: () => getOwnHomeGames(),
   });
 
 export const getOwnGamesQueryOptions = (page = 1, perPage = 20) =>
