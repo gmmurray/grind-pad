@@ -2,6 +2,7 @@ import SearchBar from '@/components/search-bar';
 import SortMenu from '@/components/sort-menu';
 import StandardPagination from '@/components/standard-pagination';
 import { TagChips, TagFilter } from '@/components/tags';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tooltip } from '@/components/ui/tooltip';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import ResourceDialog from '@/features/resources/components/resource-dialog';
@@ -25,6 +26,7 @@ import {
   Button,
   Card,
   Flex,
+  Group,
   IconButton,
   Menu,
   Portal,
@@ -34,8 +36,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { LuEllipsisVertical, LuPlus } from 'react-icons/lu';
+import { useEffect, useState } from 'react';
+import { LuEllipsisVertical, LuPlus, LuSearch } from 'react-icons/lu';
 
 type ResourcesTabProps = {
   gameId: string;
@@ -46,6 +48,13 @@ function ResourcesTab({ gameId }: ResourcesTabProps) {
     ...DEFAULT_RESOURCE_SEARCH_PARAMS,
     gameId,
   });
+  useEffect(() => {
+    setSearchParams({
+      ...DEFAULT_RESOURCE_SEARCH_PARAMS,
+      gameId,
+    });
+  }, [gameId]);
+
   const [searchInput, setSearchInput] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
@@ -153,6 +162,10 @@ function ResourcesTab({ gameId }: ResourcesTabProps) {
     }));
   };
 
+  const handleOpenLink = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const currentSortValue =
     Object.entries(sortOptions).find(
       ([, v]) =>
@@ -225,6 +238,36 @@ function ResourcesTab({ gameId }: ResourcesTabProps) {
         resource={editingResource}
       />
 
+      {resourcesData.length === 0 && (
+        <EmptyState
+          title="no results found"
+          description="try adjusting your search or adding a new resource"
+          icon={<LuSearch />}
+        >
+          <Group>
+            <Button
+              size="sm"
+              ml="auto"
+              variant="subtle"
+              onClick={handleNewResource}
+            >
+              <LuPlus />
+              new resource
+            </Button>
+            <Button
+              type="button"
+              colorPalette="gray"
+              variant="subtle"
+              onClick={handleReset}
+              disabled={resourcesLoading}
+              size="sm"
+            >
+              reset
+            </Button>
+          </Group>
+        </EmptyState>
+      )}
+
       {/* LIST */}
       {resourcesData.length > 0 && (
         <>
@@ -239,7 +282,7 @@ function ResourcesTab({ gameId }: ResourcesTabProps) {
                     cursor: 'pointer',
                   }}
                   transition="border-color 0.15s ease-in-out"
-                  onClick={() => handleEditResource(resource)}
+                  onClick={() => handleOpenLink(resource.url)}
                 >
                   <Card.Body gap="2">
                     <Tooltip content={resource.title}>

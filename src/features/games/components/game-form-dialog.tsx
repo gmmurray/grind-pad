@@ -9,23 +9,23 @@ import { GameForm } from './game-form';
 
 type Mode = 'add' | 'edit';
 
-export type GameDialogState = {
+export type GameFormDialogState = {
   mode: Mode;
   gameId?: string;
 };
 
-const GameDialogContext = createContext<{
-  open: (state: GameDialogState) => void;
+const GameFormDialogContext = createContext<{
+  open: (state: GameFormDialogState) => void;
   close: () => void;
 }>({ open: () => {}, close: () => {} });
 
-export const useGameDialog = () => useContext(GameDialogContext);
+export const useGameFormDialog = () => useContext(GameFormDialogContext);
 
-export function GameDialogProvider({ children }: PropsWithChildren) {
+export function GameFormDialogProvider({ children }: PropsWithChildren) {
   const dialog = useDialog();
-  const [state, setState] = useState<GameDialogState | null>(null);
+  const [state, setState] = useState<GameFormDialogState | null>(null);
 
-  const open = (s: GameDialogState) => {
+  const open = (s: GameFormDialogState) => {
     setState(s);
     dialog.setOpen(true);
   };
@@ -38,7 +38,7 @@ export function GameDialogProvider({ children }: PropsWithChildren) {
   const isEdit = state?.mode === 'edit' && !!state.gameId;
 
   return (
-    <GameDialogContext.Provider value={{ open, close }}>
+    <GameFormDialogContext.Provider value={{ open, close }}>
       <Dialog.RootProvider value={dialog} size={{ mdDown: 'full', md: 'lg' }}>
         {children}
         <Portal>
@@ -59,6 +59,6 @@ export function GameDialogProvider({ children }: PropsWithChildren) {
           </Dialog.Positioner>
         </Portal>
       </Dialog.RootProvider>
-    </GameDialogContext.Provider>
+    </GameFormDialogContext.Provider>
   );
 }

@@ -2,6 +2,7 @@ import SearchBar from '@/components/search-bar';
 import SortMenu from '@/components/sort-menu';
 import StandardPagination from '@/components/standard-pagination';
 import { TagChips, TagFilter } from '@/components/tags';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tooltip } from '@/components/ui/tooltip';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import NoteDialog from '@/features/notes/components/note-dialog';
@@ -26,6 +27,7 @@ import {
   Button,
   Card,
   Flex,
+  Group,
   IconButton,
   Menu,
   Portal,
@@ -34,8 +36,8 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { LuEllipsisVertical, LuPlus } from 'react-icons/lu';
+import { useEffect, useState } from 'react';
+import { LuEllipsisVertical, LuPlus, LuSearch } from 'react-icons/lu';
 
 type NotesTabProps = {
   gameId: string;
@@ -46,6 +48,14 @@ function NotesTab({ gameId }: NotesTabProps) {
     ...DEFAULT_NOTE_SEARCH_PARAMS,
     gameId,
   });
+
+  useEffect(() => {
+    setSearchParams({
+      ...DEFAULT_NOTE_SEARCH_PARAMS,
+      gameId,
+    });
+  }, [gameId]);
+
   const [searchInput, setSearchInput] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -220,6 +230,36 @@ function NotesTab({ gameId }: NotesTabProps) {
         note={editingNote}
       />
 
+      {notesData.length === 0 && (
+        <EmptyState
+          title="no results found"
+          description="try adjusting your search or adding a new note"
+          icon={<LuSearch />}
+        >
+          <Group>
+            <Button
+              size="sm"
+              ml="auto"
+              variant="subtle"
+              onClick={handleNewNote}
+            >
+              <LuPlus />
+              new note
+            </Button>
+            <Button
+              type="button"
+              colorPalette="gray"
+              variant="subtle"
+              onClick={handleReset}
+              disabled={notesLoading}
+              size="sm"
+            >
+              reset
+            </Button>
+          </Group>
+        </EmptyState>
+      )}
+
       {/* LIST */}
       {notesData.length > 0 && (
         <>
@@ -242,7 +282,7 @@ function NotesTab({ gameId }: NotesTabProps) {
                       </Box>
                     )}
                     <Card.Description mb="4" lineClamp={4}>
-                      <Text>{getPreview(note.content)}</Text>
+                      {getPreview(note.content)}
                     </Card.Description>
                   </Card.Body>
                   <Card.Footer>

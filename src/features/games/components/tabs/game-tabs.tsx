@@ -1,7 +1,6 @@
 import { Tabs } from '@chakra-ui/react';
-
 import type { JSX } from 'react';
-import { GAME_TABS, type GameTab } from './constants';
+import { GAME_TABS, type GameTab } from '../../game-constants';
 import NotesTab from './notes-tab';
 import ResourcesTab from './resources-tab';
 import TasksTab from './tasks-tab';

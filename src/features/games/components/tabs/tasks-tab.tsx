@@ -54,7 +54,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { type PropsWithChildren, useMemo } from 'react';
-import { LuCircle, LuCircleCheck, LuRotateCcw, LuTrash2 } from 'react-icons/lu';
+import { LuCircle, LuCircleCheck, LuTrash2, LuX } from 'react-icons/lu';
 
 type TasksTabProps = {
   gameId: string;
@@ -231,7 +231,7 @@ function TasksTab({ gameId }: TasksTabProps) {
                 onClick={() => createTaskForm.reset()}
               >
                 <Icon size="sm">
-                  <LuRotateCcw />
+                  <LuX />
                 </Icon>
               </Button>
             </ButtonGroup>

@@ -6,8 +6,8 @@ export const MetadataSchema = z
     id: z.string(),
     user: z.string(),
     game: z.string(),
-    noteTags: z.array(z.string()).default([]),
-    resourceTags: z.array(z.string()).default([]),
+    noteTags: z.array(z.string()),
+    resourceTags: z.array(z.string()),
   })
   .extend(TimestampSchema.shape);
 
