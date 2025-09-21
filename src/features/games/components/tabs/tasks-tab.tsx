@@ -7,6 +7,7 @@ import {
   Flex,
   GridItem,
   Heading,
+  Icon,
   IconButton,
   Input,
   Portal,
@@ -160,12 +161,12 @@ function TasksTab({ gameId }: TasksTabProps) {
             createTaskForm.handleSubmit();
           }}
         >
-          <GridItem colSpan={{ base: 4, md: 3 }}>
+          <GridItem colSpan={3}>
             <createTaskForm.Field name="text">
               {field => (
                 <Field.Root invalid={!field.state.meta.isValid}>
                   <Input
-                    placeholder="collect loot"
+                    placeholder="add task..."
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={e => field.handleChange(e.target.value)}
@@ -177,7 +178,7 @@ function TasksTab({ gameId }: TasksTabProps) {
               )}
             </createTaskForm.Field>
           </GridItem>
-          <GridItem colSpan={{ base: 1, md: 1 }}>
+          <GridItem colSpan={{ base: 2, md: 1 }}>
             <createTaskForm.Field name="type">
               {field => (
                 <Field.Root invalid={!field.state.meta.isValid}>
@@ -220,13 +221,18 @@ function TasksTab({ gameId }: TasksTabProps) {
           </GridItem>
           <GridItem colSpan={{ base: 5, md: 'auto' }}>
             <ButtonGroup w="full" attached>
-              <Button type="submit">save</Button>
+              <Button type="submit" variant="subtle">
+                save
+              </Button>
               <Button
                 type="button"
-                variant="outline"
+                colorPalette="gray"
+                variant="subtle"
                 onClick={() => createTaskForm.reset()}
               >
-                <LuRotateCcw />
+                <Icon size="sm">
+                  <LuRotateCcw />
+                </Icon>
               </Button>
             </ButtonGroup>
           </GridItem>

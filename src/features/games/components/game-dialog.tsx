@@ -39,7 +39,7 @@ export function GameDialogProvider({ children }: PropsWithChildren) {
 
   return (
     <GameDialogContext.Provider value={{ open, close }}>
-      <Dialog.RootProvider value={dialog}>
+      <Dialog.RootProvider value={dialog} size={{ mdDown: 'full', md: 'lg' }}>
         {children}
         <Portal>
           <Dialog.Backdrop />

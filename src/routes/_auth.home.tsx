@@ -10,6 +10,7 @@ import {
   Box,
   Button,
   Card,
+  Collapsible,
   Flex,
   Grid,
   GridItem,
@@ -17,12 +18,19 @@ import {
   IconButton,
   Menu,
   Portal,
+  Separator,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
-import { LuEllipsisVertical, LuList, LuPlus } from 'react-icons/lu';
+import {
+  LuChevronDown,
+  LuEllipsisVertical,
+  LuList,
+  LuPlus,
+} from 'react-icons/lu';
 
 import { useGameDialog } from '@/features/games/components/game-dialog';
 import GameTabs from '@/features/games/components/tabs/game-tabs';
@@ -49,7 +57,7 @@ export const Route = createFileRoute('/_auth/home')({
     deps: { game: gameFromSearch, tab: tabFromSearch },
   }) => {
     const gameList = await queryClient.ensureQueryData(
-      getOwnGamesQueryOptions(1, 20),
+      getOwnGamesQueryOptions(1, 5),
     );
     const gameFromStorage =
       window.localStorage.getItem(LAST_GAME_STORAGE_KEY) ?? undefined;
@@ -118,7 +126,7 @@ export const Route = createFileRoute('/_auth/home')({
 
 function RouteComponent() {
   const { open } = useGameDialog();
-  const gamesQuery = useSuspenseQuery(getOwnGamesQueryOptions(1, 20));
+  const gamesQuery = useSuspenseQuery(getOwnGamesQueryOptions(1, 5));
   const navigate = useNavigate({ from: Route.fullPath });
   const { game: gameIdParam, tab } = Route.useSearch();
 
@@ -165,77 +173,159 @@ function RouteComponent() {
       flexDir={{ base: 'column', md: 'unset' }}
       gap="4"
     >
-      {/* SIDEBAR */}
+      {/* GAME SELECTOR */}
       <GridItem colSpan={{ base: 1, md: 1 }}>
-        <Card.Root h="full">
+        <Card.Root h="full" size={{ base: 'sm', md: 'md' }}>
           <Card.Body>
-            <Flex alignItems="center" mb="4">
-              <Card.Title>my games</Card.Title>
-              <Menu.Root positioning={{ placement: 'bottom-end' }}>
-                <Menu.Trigger asChild>
-                  <IconButton
-                    ml="auto"
-                    variant="ghost"
-                    colorPalette="gray"
-                    size="sm"
-                    rounded="full"
-                  >
-                    <LuEllipsisVertical />
-                  </IconButton>
-                </Menu.Trigger>
-                <Portal>
-                  <Menu.Positioner>
-                    <Menu.Content>
-                      <Menu.Item
-                        value="add"
-                        onClick={() => open({ mode: 'add' })}
+            {/* DESKTOP */}
+            <Box display={{ base: 'none', md: 'initial' }}>
+              <Flex alignItems="center" mb="4">
+                <Text
+                  fontSize="lg"
+                  color="fg.muted"
+                  display={{ base: 'none', md: 'initial' }}
+                >
+                  games
+                </Text>
+                <Box ml="auto">
+                  <Menu.Root positioning={{ placement: 'bottom-end' }}>
+                    <Menu.Trigger asChild>
+                      <IconButton
+                        variant="ghost"
+                        colorPalette="gray"
+                        size="sm"
+                        rounded="full"
                       >
-                        <LuPlus />
-                        <Box>add</Box>
-                      </Menu.Item>
-                      <Menu.Item value="manage" asChild>
-                        <Link to="/games">
-                          <LuList />
-                          manage
-                        </Link>
-                      </Menu.Item>
-                    </Menu.Content>
-                  </Menu.Positioner>
-                </Portal>
-              </Menu.Root>
-            </Flex>
+                        <LuEllipsisVertical />
+                      </IconButton>
+                    </Menu.Trigger>
+                    <Portal>
+                      <Menu.Positioner
+                        display={{ base: 'none', md: 'initial' }}
+                      >
+                        <Menu.Content>
+                          <Menu.Item
+                            value="add"
+                            onClick={() => open({ mode: 'add' })}
+                          >
+                            <LuPlus />
+                            <Box>add</Box>
+                          </Menu.Item>
+                          <Menu.Item value="manage" asChild>
+                            <Link to="/games">
+                              <LuList />
+                              manage
+                            </Link>
+                          </Menu.Item>
+                        </Menu.Content>
+                      </Menu.Positioner>
+                    </Portal>
+                  </Menu.Root>
+                </Box>
+              </Flex>
 
-            <Stack gap="1">
-              {unionGames.map(game => {
-                return (
-                  <Button
-                    key={game.id}
-                    variant={selectedGame?.id === game.id ? 'subtle' : 'ghost'}
-                    onClick={() => {
-                      window.localStorage.setItem(
-                        LAST_GAME_STORAGE_KEY,
-                        game.id,
+              <Stack gap="1">
+                {unionGames.map(game => {
+                  return (
+                    <Button
+                      key={game.id}
+                      colorPalette="gray"
+                      variant={
+                        selectedGame?.id === game.id ? 'subtle' : 'ghost'
+                      }
+                      onClick={() => {
+                        window.localStorage.setItem(
+                          LAST_GAME_STORAGE_KEY,
+                          game.id,
+                        );
+                        navigate({
+                          search: prev => ({ ...prev, game: game.id }),
+                        });
+                      }}
+                      justifyContent="start"
+                    >
+                      {game.title}
+                    </Button>
+                  );
+                })}
+              </Stack>
+            </Box>
+
+            {/* MOBILE */}
+            <Box display={{ base: 'initial', md: 'none' }}>
+              <Collapsible.Root>
+                <Collapsible.Trigger w="full">
+                  <Flex alignItems="center">
+                    <Text
+                      fontSize="lg"
+                      color="fg.muted"
+                      display={{ base: 'initial', md: 'none' }}
+                    >
+                      {selectedGame?.title}
+                    </Text>
+                    <Box ml="auto">{<LuChevronDown />}</Box>
+                  </Flex>
+                </Collapsible.Trigger>
+
+                <Collapsible.Content>
+                  <Separator mt="2" />
+                  <Flex>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      ml="-4"
+                      onClick={() => open({ mode: 'add' })}
+                    >
+                      add game
+                    </Button>
+                    <Button type="button" variant="ghost" ml="auto" mr="-4">
+                      manage games
+                    </Button>
+                  </Flex>
+
+                  <Separator mt="1" />
+
+                  <Stack gap="1">
+                    {unionGames.map(game => {
+                      return (
+                        <Button
+                          key={game.id}
+                          colorPalette="gray"
+                          variant={
+                            selectedGame?.id === game.id ? 'subtle' : 'ghost'
+                          }
+                          onClick={() => {
+                            window.localStorage.setItem(
+                              LAST_GAME_STORAGE_KEY,
+                              game.id,
+                            );
+                            navigate({
+                              search: prev => ({ ...prev, game: game.id }),
+                            });
+                          }}
+                          justifyContent="start"
+                        >
+                          {game.title}
+                        </Button>
                       );
-                      navigate({
-                        search: prev => ({ ...prev, game: game.id }),
-                      });
-                    }}
-                    justifyContent="start"
-                  >
-                    {game.title}
-                  </Button>
-                );
-              })}
-            </Stack>
+                    })}
+                  </Stack>
+                </Collapsible.Content>
+              </Collapsible.Root>
+            </Box>
           </Card.Body>
         </Card.Root>
       </GridItem>
 
       {/* MAIN AREA */}
       <GridItem colSpan={{ base: 1, md: 3 }} flex={{ base: '1', md: 'unset' }}>
-        <Card.Root h="full">
+        <Card.Root h="full" size={{ base: 'sm', md: 'md' }}>
           <Card.Body>
-            <Heading size="4xl" mb="4">
+            <Heading
+              size="4xl"
+              mb="4"
+              display={{ base: 'none', md: 'initial' }}
+            >
               {selectedGame?.title}
             </Heading>
 
