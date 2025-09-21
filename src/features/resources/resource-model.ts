@@ -1,16 +1,19 @@
 import { SORT_DIRECTION, sortDir } from '@/lib/zod/common';
 
+import { TimestampSchema } from '@/lib/pocketbase';
 import z from 'zod';
 
-export const ResourceSchema = z.object({
-  id: z.string(),
-  user: z.string(),
-  game: z.string(),
-  title: z.string().min(1, 'Title is required'),
-  url: z.url().min(1, 'URL is required'),
-  description: z.string(),
-  tags: z.array(z.string()),
-});
+export const ResourceSchema = z
+  .object({
+    id: z.string(),
+    user: z.string(),
+    game: z.string(),
+    title: z.string().min(1, 'Title is required'),
+    url: z.url().min(1, 'URL is required'),
+    description: z.string(),
+    tags: z.array(z.string()),
+  })
+  .extend(TimestampSchema.shape);
 
 export const CreateResourceSchema = z.object({
   title: ResourceSchema.shape.title,
@@ -26,17 +29,17 @@ export const UpdateResourceSchema = z.object({
   tags: ResourceSchema.shape.tags,
 });
 
-export const RESROUCES_SOTE_BY = {
+export const RESOURCES_SORT_BY = {
   TITLE: 'title',
-  ADDED: 'added',
+  CREATED: 'created',
 };
-export const resourcesSortBy = Object.values(RESROUCES_SOTE_BY);
+export const resourcesSortBy = Object.values(RESOURCES_SORT_BY);
 export type ResourcesSortBy = (typeof resourcesSortBy)[number];
 
 export const DEFAULT_RESOURCE_SEARCH_PARAMS = {
   page: 1,
   perPage: 6,
-  sortBy: RESROUCES_SOTE_BY.ADDED,
+  sortBy: RESOURCES_SORT_BY.CREATED,
   sortDir: SORT_DIRECTION.DESC,
 };
 export const SearchResourcesParamsSchema = z.object({

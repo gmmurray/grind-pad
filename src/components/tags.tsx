@@ -106,11 +106,15 @@ export function TagInput({
       searchValue={searchValue}
       onChange={onChange}
       onSearchValueChange={setSearchValue}
-      renderEmpty={() => (
-        <Button onClick={handleAdd} size="xs" variant="plain">
-          Add {searchValue}
-        </Button>
-      )}
+      renderEmpty={() =>
+        searchValue ? (
+          <Button onClick={handleAdd} size="xs" variant="plain">
+            Add {searchValue}
+          </Button>
+        ) : (
+          'Type to add...'
+        )
+      }
     />
   );
 }

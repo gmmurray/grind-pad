@@ -30,6 +30,8 @@ import type { Game } from '@/features/games/game-model';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import { DEFAULT_NOTE_SEARCH_PARAMS } from '@/features/notes/note-model';
 import { searchOwnGameNotesQueryOptions } from '@/features/notes/note-queries';
+import { DEFAULT_RESOURCE_SEARCH_PARAMS } from '@/features/resources/resource-model';
+import { searchOwnGameResourcesQueryOptions } from '@/features/resources/resource-queries';
 import { getOwnGameTasksQueryOptions } from '@/features/tasks/task-queries';
 import z from 'zod';
 
@@ -66,6 +68,12 @@ export const Route = createFileRoute('/_auth/home')({
       if (tabFromSearch === GAME_TABS.NOTES) {
         // prefetch tasks and resources
         queryClient.prefetchQuery(getOwnGameTasksQueryOptions(selectedGameId));
+        queryClient.prefetchQuery(
+          searchOwnGameResourcesQueryOptions({
+            ...DEFAULT_RESOURCE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
         await queryClient.ensureQueryData(
           searchOwnGameNotesQueryOptions({
             ...DEFAULT_NOTE_SEARCH_PARAMS,
@@ -73,14 +81,19 @@ export const Route = createFileRoute('/_auth/home')({
           }),
         );
       } else if (tabFromSearch === GAME_TABS.RESOURCES) {
+        queryClient.prefetchQuery(getOwnGameTasksQueryOptions(selectedGameId));
         queryClient.prefetchQuery(
           searchOwnGameNotesQueryOptions({
             ...DEFAULT_NOTE_SEARCH_PARAMS,
             gameId: selectedGameId,
           }),
         );
-        // prefetch tasks and notes
-        // ensure resources data
+        await queryClient.ensureQueryData(
+          searchOwnGameResourcesQueryOptions({
+            ...DEFAULT_RESOURCE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
       } else {
         queryClient.prefetchQuery(
           searchOwnGameNotesQueryOptions({
@@ -88,8 +101,12 @@ export const Route = createFileRoute('/_auth/home')({
             gameId: selectedGameId,
           }),
         );
-        // (tab = tasks or tab = undefined)
-        // prefetch notes and resources
+        queryClient.prefetchQuery(
+          searchOwnGameResourcesQueryOptions({
+            ...DEFAULT_RESOURCE_SEARCH_PARAMS,
+            gameId: selectedGameId,
+          }),
+        );
         await queryClient.ensureQueryData(
           getOwnGameTasksQueryOptions(selectedGameId),
         );

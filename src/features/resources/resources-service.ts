@@ -68,7 +68,7 @@ export async function searchOwnGameResources(
 
   // optional title, url substring match
   if (text) {
-    filters.push(`title~"${text}" || url~${text}`);
+    filters.push(`title~"${text}" || url~"${text}"`);
   }
 
   // optional tags filter

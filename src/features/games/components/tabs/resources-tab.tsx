@@ -4,21 +4,20 @@ import StandardPagination from '@/components/standard-pagination';
 import { TagChips, TagFilter } from '@/components/tags';
 import { Tooltip } from '@/components/ui/tooltip';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
-import NoteDialog from '@/features/notes/components/note-dialog';
+import ResourceDialog from '@/features/resources/components/resource-dialog';
 import {
-  type CreateNote,
-  DEFAULT_NOTE_SEARCH_PARAMS,
-  NOTES_SORT_BY,
-  type Note,
-  type SearchNotesParams,
-} from '@/features/notes/note-model';
-
+  type CreateResource,
+  DEFAULT_RESOURCE_SEARCH_PARAMS,
+  RESOURCES_SORT_BY,
+  type Resource,
+  type SearchResourcesParams,
+} from '@/features/resources/resource-model';
 import {
-  searchOwnGameNotesQueryOptions,
-  useCreateOwnGameNoteMutation,
-  useDeleteOwnGameNoteMutation,
-  useUpdateOwnGameNoteMutation,
-} from '@/features/notes/note-queries';
+  searchOwnGameResourcesQueryOptions,
+  useCreateOwnGameResourceMutation,
+  useDeleteOwnGameResourceMutation,
+  useUpdateOwnGameResourceMutation,
+} from '@/features/resources/resource-queries';
 import { toDate } from '@/lib/dayjs';
 import { SORT_DIRECTION } from '@/lib/zod/common';
 import {
@@ -29,6 +28,7 @@ import {
   IconButton,
   Menu,
   Portal,
+  Separator,
   SimpleGrid,
   Stack,
   Text,
@@ -37,41 +37,41 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { LuEllipsisVertical, LuPlus } from 'react-icons/lu';
 
-type NotesTabProps = {
+type ResourcesTabProps = {
   gameId: string;
 };
 
-function NotesTab({ gameId }: NotesTabProps) {
-  const [searchParams, setSearchParams] = useState<SearchNotesParams>({
-    ...DEFAULT_NOTE_SEARCH_PARAMS,
+function ResourcesTab({ gameId }: ResourcesTabProps) {
+  const [searchParams, setSearchParams] = useState<SearchResourcesParams>({
+    ...DEFAULT_RESOURCE_SEARCH_PARAMS,
     gameId,
   });
   const [searchInput, setSearchInput] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
 
-  const { data: metadata } = useSuspenseQuery(
+  const { data: metaData } = useSuspenseQuery(
     getOwnGameMetadataQueryOptions(gameId),
   );
   const {
     data: {
-      items: notesData = [],
-      count: notesCount = 0,
-      totalPages: notesTotalPages = 0,
+      items: resourcesData = [],
+      count: resourcesCount = 0,
+      totalPages: resourcesTotalPages = 0,
     } = {},
-    isLoading: notesLoading,
-  } = useQuery(searchOwnGameNotesQueryOptions(searchParams));
+    isLoading: resourcesLoading,
+  } = useQuery(searchOwnGameResourcesQueryOptions(searchParams));
 
-  const createMutation = useCreateOwnGameNoteMutation(gameId);
-  const updateMutation = useUpdateOwnGameNoteMutation(gameId);
-  const deleteMutation = useDeleteOwnGameNoteMutation(gameId);
+  const createMutation = useCreateOwnGameResourceMutation(gameId);
+  const updateMutation = useUpdateOwnGameResourceMutation(gameId);
+  const deleteMutation = useDeleteOwnGameResourceMutation(gameId);
 
-  const handleSearch = (title?: string) => {
+  const handleSearch = (text?: string) => {
     setSearchParams(state => ({
       ...state,
-      page: DEFAULT_NOTE_SEARCH_PARAMS.page,
-      perPage: DEFAULT_NOTE_SEARCH_PARAMS.perPage,
-      title,
+      page: DEFAULT_RESOURCE_SEARCH_PARAMS.page,
+      perPage: DEFAULT_RESOURCE_SEARCH_PARAMS.perPage,
+      text,
     }));
   };
 
@@ -81,8 +81,8 @@ function NotesTab({ gameId }: NotesTabProps) {
     }
     setSearchParams(state => ({
       ...state,
-      page: DEFAULT_NOTE_SEARCH_PARAMS.page,
-      perPage: DEFAULT_NOTE_SEARCH_PARAMS.perPage,
+      page: DEFAULT_RESOURCE_SEARCH_PARAMS.page,
+      perPage: DEFAULT_RESOURCE_SEARCH_PARAMS.perPage,
       ...sortOptions[value as keyof typeof sortOptions].value,
     }));
   };
@@ -90,8 +90,8 @@ function NotesTab({ gameId }: NotesTabProps) {
   const handleTagsChange = (value: string[]) => {
     setSearchParams(state => ({
       ...state,
-      page: DEFAULT_NOTE_SEARCH_PARAMS.page,
-      perPage: DEFAULT_NOTE_SEARCH_PARAMS.perPage,
+      page: DEFAULT_RESOURCE_SEARCH_PARAMS.page,
+      perPage: DEFAULT_RESOURCE_SEARCH_PARAMS.perPage,
       tags: value.length ? value : undefined,
     }));
   };
@@ -99,8 +99,8 @@ function NotesTab({ gameId }: NotesTabProps) {
   const handleRemoveTag = (tag: string) => {
     setSearchParams(state => ({
       ...state,
-      page: DEFAULT_NOTE_SEARCH_PARAMS.page,
-      perPage: DEFAULT_NOTE_SEARCH_PARAMS.perPage,
+      page: DEFAULT_RESOURCE_SEARCH_PARAMS.page,
+      perPage: DEFAULT_RESOURCE_SEARCH_PARAMS.perPage,
       tags: (state.tags ?? []).filter(t => t !== tag),
     }));
   };
@@ -110,25 +110,25 @@ function NotesTab({ gameId }: NotesTabProps) {
     setSearchParams(state => ({
       ...state,
       tags: undefined,
-      title: undefined,
-      ...DEFAULT_NOTE_SEARCH_PARAMS,
+      text: undefined,
+      ...DEFAULT_RESOURCE_SEARCH_PARAMS,
     }));
   };
 
-  const handleNewNote = () => {
-    setEditingNote(null);
+  const handleNewResource = () => {
+    setEditingResource(null);
     setDialogOpen(true);
   };
 
-  const handleEditNote = (note: Note) => {
-    setEditingNote(note);
+  const handleEditResource = (resource: Resource) => {
+    setEditingResource(resource);
     setDialogOpen(true);
   };
 
-  const handleSubmit = async (input: CreateNote) => {
-    if (editingNote) {
+  const handleSubmit = async (input: CreateResource) => {
+    if (editingResource) {
       await updateMutation.mutateAsync({
-        noteId: editingNote.id,
+        resourceId: editingResource.id,
         input,
       });
     } else {
@@ -136,13 +136,13 @@ function NotesTab({ gameId }: NotesTabProps) {
     }
   };
 
-  const handleDelete = async (noteId: string) => {
+  const handleDelete = async (resourceId: string) => {
     if (!confirm('Are you sure?')) {
       return;
     }
     await deleteMutation.mutateAsync({
       gameId,
-      noteId,
+      resourceId,
     });
   };
 
@@ -158,7 +158,7 @@ function NotesTab({ gameId }: NotesTabProps) {
       ([, v]) =>
         v.value.sortBy === searchParams.sortBy &&
         v.value.sortDir === searchParams.sortDir,
-    )?.[0] ?? 'latest';
+    )?.[0] ?? 'added';
 
   return (
     <>
@@ -168,87 +168,105 @@ function NotesTab({ gameId }: NotesTabProps) {
           value={searchInput}
           onChange={setSearchInput}
           onSearch={handleSearch}
-          disabled={notesLoading}
+          disabled={resourcesLoading}
         />
         <Flex gap="2">
           <TagFilter
             selectedTags={searchParams.tags ?? []}
-            options={metadata?.noteTags ?? []}
+            options={metaData?.resourceTags ?? []}
             onChange={handleTagsChange}
-            loading={notesLoading}
+            loading={resourcesLoading}
           />
           <Button
             type="button"
             colorPalette="gray"
             variant="subtle"
             onClick={handleReset}
-            disabled={notesLoading}
+            disabled={resourcesLoading}
           >
             reset
           </Button>
         </Flex>
+        {(searchParams.tags?.length ?? 0) > 0 && (
+          <Box my="2">
+            <TagChips
+              tags={searchParams.tags ?? []}
+              onClose={tag => handleRemoveTag(tag)}
+              disabled={resourcesLoading}
+            />
+          </Box>
+        )}
       </Stack>
-      {(searchParams.tags?.length ?? 0) > 0 && (
-        <Box my="2">
-          <TagChips
-            tags={searchParams.tags ?? []}
-            onClose={tag => handleRemoveTag(tag)}
-            disabled={notesLoading}
-          />
-        </Box>
-      )}
       <Flex my="2">
         <SortMenu
           value={currentSortValue}
           options={sortOptions}
-          disabled={notesLoading}
+          disabled={resourcesLoading}
           onChange={handleSortChange}
         />
 
-        <Button size="sm" ml="auto" variant="subtle" onClick={handleNewNote}>
+        <Button
+          size="sm"
+          ml="auto"
+          variant="subtle"
+          onClick={handleNewResource}
+        >
           <LuPlus />
-          new note
+          new resource
         </Button>
       </Flex>
 
-      {/* EDITOR */}
-      <NoteDialog
+      {/* RESOURCE EDITOR */}
+      <ResourceDialog
         gameId={gameId}
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleSubmit}
-        note={editingNote}
+        resource={editingResource}
       />
 
       {/* LIST */}
-      {notesData.length > 0 && (
+      {resourcesData.length > 0 && (
         <>
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap="2" my="4">
-            {notesData.map(note => {
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={2} my="4">
+            {resourcesData.map(resource => {
               return (
                 <Card.Root
-                  key={note.id}
-                  variant="subtle"
-                  _hover={{ opacity: 0.9, cursor: 'pointer' }}
-                  onClick={() => handleEditNote(note)}
+                  key={resource.id}
+                  variant="outline"
+                  _hover={{
+                    borderColor: 'colorPalette.fg',
+                    cursor: 'pointer',
+                  }}
+                  transition="border-color 0.15s ease-in-out"
+                  onClick={() => handleEditResource(resource)}
                 >
-                  <Card.Body gap="1">
-                    <Tooltip content={note.title}>
-                      <Card.Title truncate>{note.title}</Card.Title>
+                  <Card.Body gap="2">
+                    <Tooltip content={resource.title}>
+                      <Text truncate fontWeight="semibold">
+                        {resource.title}
+                      </Text>
                     </Tooltip>
-                    {note.tags.length > 0 && (
+                    <Text truncate fontSize="xs" color="fg.muted">
+                      {resource.url}
+                    </Text>
+                    <Separator />
+                    {resource.description && (
+                      <Text lineClamp={2} fontSize="sm">
+                        {resource.description}
+                      </Text>
+                    )}
+                    {resource.tags.length > 0 && (
                       <Box>
-                        <TagChips tags={note.tags} />
+                        <TagChips tags={resource.tags} />
                       </Box>
                     )}
-                    <Card.Description mb="4" lineClamp={4}>
-                      <Text>{getPreview(note.content)}</Text>
-                    </Card.Description>
                   </Card.Body>
                   <Card.Footer>
                     <Text color="fg.subtle" fontSize="xs">
-                      {`Updated ${toDate(note.updated)}`}
+                      {`Added ${toDate(resource.created)}`}
                     </Text>
+
                     <Menu.Root>
                       <Menu.Trigger asChild onClick={e => e.stopPropagation()}>
                         <IconButton
@@ -265,18 +283,18 @@ function NotesTab({ gameId }: NotesTabProps) {
                           <Menu.Content>
                             <Menu.Item
                               value="edit"
-                              onClick={() => handleEditNote(note)}
+                              onClick={() => handleEditResource(resource)}
                             >
-                              Edit note
+                              Edit resource
                             </Menu.Item>
                             <Menu.Item
                               value="delete"
                               color="fg.error"
                               _hover={{ bg: 'bg.error', color: 'fg.error' }}
                               disabled={deleteMutation.isPending}
-                              onClick={() => handleDelete(note.id)}
+                              onClick={() => handleDelete(resource.id)}
                             >
-                              Delete note
+                              Delete resource
                             </Menu.Item>
                           </Menu.Content>
                         </Menu.Positioner>
@@ -290,8 +308,8 @@ function NotesTab({ gameId }: NotesTabProps) {
 
           {/* PAGINATION */}
           <StandardPagination
-            totalPages={notesTotalPages}
-            itemCount={notesCount}
+            totalPages={resourcesTotalPages}
+            itemCount={resourcesCount}
             pageSize={searchParams.perPage}
             currentPage={searchParams.page}
             onChange={handlePageChange}
@@ -302,28 +320,15 @@ function NotesTab({ gameId }: NotesTabProps) {
   );
 }
 
-export default NotesTab;
+export default ResourcesTab;
 
 const sortOptions = {
-  latest: {
-    label: 'latest',
-    value: { sortBy: NOTES_SORT_BY.UPDATED, sortDir: SORT_DIRECTION.DESC },
+  added: {
+    label: 'recently added',
+    value: { sortBy: RESOURCES_SORT_BY.CREATED, sortDir: SORT_DIRECTION.DESC },
   },
   title: {
     label: 'title',
-    value: { sortBy: NOTES_SORT_BY.TITLE, sortDir: SORT_DIRECTION.ASC },
+    value: { sortBy: RESOURCES_SORT_BY.TITLE, sortDir: SORT_DIRECTION.ASC },
   },
-};
-
-const getPreview = (html: string) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  let preview = '';
-  for (const p of doc.querySelectorAll('p')) {
-    if (preview.length < 150) {
-      preview += ` ${p.textContent}`;
-    }
-  }
-  preview = preview.trim();
-  return preview;
 };

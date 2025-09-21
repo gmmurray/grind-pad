@@ -1,32 +1,36 @@
 import { useAppForm } from '@/components/form/use-app-form';
+import { TagChips, TagInput } from '@/components/tags';
 import { toaster } from '@/components/ui/toaster';
 import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
 import { alphabeticalDedupe } from '@/utils/dedupe';
 import { Box, Button, Field, Group, Stack } from '@chakra-ui/react';
 import { revalidateLogic } from '@tanstack/react-form';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useCurrentEditor } from '@tiptap/react';
 import { useMemo, useState } from 'react';
-import { TagChips, TagInput } from '../../../../components/tags';
 import {
-  type CreateNote,
-  CreateNoteSchema,
-  type Note,
-  type UpdateNote,
-  UpdateNoteSchema,
-} from '../../note-model';
-import NoteContentEditor from './note-content-editor';
+  type CreateResource,
+  CreateResourceSchema,
+  type Resource,
+  type UpdateResource,
+  UpdateResourceSchema,
+} from '../../resource-model';
 
-type NoteFormProps = {
+type ResourceFormProps = {
   gameId: string;
-  note?: Note | null;
-  onSubmit: (input: CreateNote | UpdateNote) => Promise<void>;
+  resource: Resource | null;
+  onSubmit: (input: CreateResource | UpdateResource) => Promise<void>;
   onCancel: () => void;
 };
 
-function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
-  const { editor: contentEditor } = useCurrentEditor();
-  const [selectedTags, setSelectedTags] = useState<string[]>(note?.tags || []);
+function ResourceForm({
+  gameId,
+  resource,
+  onSubmit,
+  onCancel,
+}: ResourceFormProps) {
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    resource?.tags ?? [],
+  );
 
   const { data: metadata } = useSuspenseQuery(
     getOwnGameMetadataQueryOptions(gameId),
@@ -35,40 +39,42 @@ function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
   const initialTags = useMemo(
     () =>
       alphabeticalDedupe([
-        ...(metadata?.noteTags ?? []),
-        ...(note?.tags ?? []),
+        ...(metadata?.resourceTags ?? []),
+        ...(resource?.tags ?? []),
       ]),
-    [metadata?.noteTags, note?.tags],
+    [metadata?.resourceTags, resource?.tags],
   );
 
   const handleRemoveTag = (tag: string) => {
     setSelectedTags(state => state.filter(t => t !== tag));
   };
 
-  const isEdit = !!note;
+  const isEdit = !!resource;
 
   const form = useAppForm({
     defaultValues: {
-      title: note?.title || '',
-      content: note?.content || '',
-      tags: note?.tags || [],
+      title: resource?.title ?? '',
+      url: resource?.url ?? '',
+      description: resource?.description ?? '',
+      tags: resource?.tags ?? [],
     },
     onSubmit: async ({ value }) => {
       try {
         await onSubmit({
-          title: value.title,
-          content: contentEditor?.getHTML() ?? '',
+          ...value,
           tags: selectedTags,
         });
 
         toaster.create({
-          title: isEdit ? 'Note updated' : 'Note created',
+          title: isEdit ? 'Resource updated' : 'Resource created',
           type: 'success',
         });
       } catch (error) {
         toaster.create({
           title: 'Error',
-          description: isEdit ? 'Error updating note' : 'Error creating note',
+          description: isEdit
+            ? 'Error updating resource'
+            : 'Error creating resource',
           type: 'error',
         });
       }
@@ -77,7 +83,9 @@ function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
       mode: 'submit',
       modeAfterSubmission: 'change',
     }),
-    validators: { onDynamic: isEdit ? UpdateNoteSchema : CreateNoteSchema },
+    validators: {
+      onDynamic: isEdit ? UpdateResourceSchema : CreateResourceSchema,
+    },
   });
 
   return (
@@ -91,14 +99,27 @@ function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
       <Stack gap="2">
         <form.AppField name="title">
           {field => (
-            <field.FormInput label="Title" placeholder="Enter note title..." />
+            <field.FormInput
+              label="Title"
+              placeholder="Enter resource title..."
+            />
           )}
         </form.AppField>
 
-        <Field.Root>
-          <Field.Label>Content</Field.Label>
-          <NoteContentEditor />
-        </Field.Root>
+        <form.AppField name="url">
+          {field => (
+            <field.FormInput label="URL" placeholder="https://example.com" />
+          )}
+        </form.AppField>
+
+        <form.AppField name="description">
+          {field => (
+            <field.FormInput
+              label="Description"
+              placeholder="Enter resource description..."
+            />
+          )}
+        </form.AppField>
 
         <Field.Root>
           <Field.Label>Tags</Field.Label>
@@ -129,4 +150,4 @@ function NoteForm({ gameId, note, onSubmit, onCancel }: NoteFormProps) {
   );
 }
 
-export default NoteForm;
+export default ResourceForm;
