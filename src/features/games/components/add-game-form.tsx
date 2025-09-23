@@ -5,12 +5,12 @@ import { toaster } from '@/components/ui/toaster';
 import { CreateGameSchema } from '../game-model';
 import { useCreateOwnGameMutation } from '../game-queries';
 
-type GameFormProps = {
-  onSubmit: () => void;
+type AddGameFormProps = {
+  onSubmit: (gameId: string) => void;
   onCancel: () => void;
 };
 
-export function GameForm({ onSubmit, onCancel }: GameFormProps) {
+export function AddGameForm({ onSubmit, onCancel }: AddGameFormProps) {
   const mutation = useCreateOwnGameMutation();
   const form = useForm({
     defaultValues: {
@@ -20,8 +20,8 @@ export function GameForm({ onSubmit, onCancel }: GameFormProps) {
       mutation.mutate(
         { ...value },
         {
-          onSuccess: () => {
-            onSubmit();
+          onSuccess: result => {
+            onSubmit(result.id);
             toaster.create({
               title: 'Game added',
               type: 'success',

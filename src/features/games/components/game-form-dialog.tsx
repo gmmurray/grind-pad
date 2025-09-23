@@ -5,27 +5,24 @@ import {
   useContext,
   useState,
 } from 'react';
-import { GameForm } from './game-form';
+import { AddGameForm } from './add-game-form';
 
-type Mode = 'add' | 'edit';
-
-export type GameFormDialogState = {
-  mode: Mode;
-  gameId?: string;
+export type AddGameFormDialogState = {
+  submitCallback?: (gameId: string) => void;
 };
 
-const GameFormDialogContext = createContext<{
-  open: (state: GameFormDialogState) => void;
+const AddGameFormDialogContext = createContext<{
+  open: (state: AddGameFormDialogState) => void;
   close: () => void;
 }>({ open: () => {}, close: () => {} });
 
-export const useGameFormDialog = () => useContext(GameFormDialogContext);
+export const useAddGameFormDialog = () => useContext(AddGameFormDialogContext);
 
-export function GameFormDialogProvider({ children }: PropsWithChildren) {
+export function AddGameFormDialogProvider({ children }: PropsWithChildren) {
   const dialog = useDialog();
-  const [state, setState] = useState<GameFormDialogState | null>(null);
+  const [state, setState] = useState<AddGameFormDialogState | null>(null);
 
-  const open = (s: GameFormDialogState) => {
+  const open = (s: AddGameFormDialogState) => {
     setState(s);
     dialog.setOpen(true);
   };
@@ -35,10 +32,15 @@ export function GameFormDialogProvider({ children }: PropsWithChildren) {
     setState(null);
   };
 
-  const isEdit = state?.mode === 'edit' && !!state.gameId;
+  const onSubmit = (gameId: string) => {
+    if (state?.submitCallback) {
+      state.submitCallback(gameId);
+    }
+    close();
+  };
 
   return (
-    <GameFormDialogContext.Provider value={{ open, close }}>
+    <AddGameFormDialogContext.Provider value={{ open, close }}>
       <Dialog.RootProvider value={dialog} size={{ mdDown: 'full', md: 'lg' }}>
         {children}
         <Portal>
@@ -46,10 +48,10 @@ export function GameFormDialogProvider({ children }: PropsWithChildren) {
           <Dialog.Positioner>
             <Dialog.Content>
               <Dialog.Header>
-                <Dialog.Title>{isEdit ? 'Edit' : 'Add'}</Dialog.Title>
+                <Dialog.Title>add game</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body>
-                <GameForm onSubmit={close} onCancel={close} />
+                <AddGameForm onSubmit={onSubmit} onCancel={close} />
               </Dialog.Body>
 
               <Dialog.CloseTrigger asChild>
@@ -59,6 +61,6 @@ export function GameFormDialogProvider({ children }: PropsWithChildren) {
           </Dialog.Positioner>
         </Portal>
       </Dialog.RootProvider>
-    </GameFormDialogContext.Provider>
+    </AddGameFormDialogContext.Provider>
   );
 }

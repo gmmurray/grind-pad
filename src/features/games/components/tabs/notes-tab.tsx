@@ -179,6 +179,7 @@ function NotesTab({ gameId }: NotesTabProps) {
           onChange={setSearchInput}
           onSearch={handleSearch}
           disabled={notesLoading}
+          onClear={() => setSearchInput('')}
         />
         <Flex gap="2">
           <TagFilter

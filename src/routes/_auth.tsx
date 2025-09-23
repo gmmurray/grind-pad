@@ -1,7 +1,8 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
 
 import AppLayout from '@/components/app-layout';
-import { GameFormDialogProvider } from '@/features/games/components/game-form-dialog';
+import { AddGameFormDialogProvider } from '@/features/games/components/game-form-dialog';
+import { GameSelectDialogProvider } from '@/features/games/components/game-select-dialog';
 
 export const Route = createFileRoute('/_auth')({
   beforeLoad: ({ context, location }) => {
@@ -16,9 +17,11 @@ export const Route = createFileRoute('/_auth')({
   },
   component: () => (
     <AppLayout>
-      <GameFormDialogProvider>
-        <Outlet />
-      </GameFormDialogProvider>
+      <AddGameFormDialogProvider>
+        <GameSelectDialogProvider>
+          <Outlet />
+        </GameSelectDialogProvider>
+      </AddGameFormDialogProvider>
     </AppLayout>
   ),
 });

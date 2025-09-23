@@ -16,6 +16,8 @@ import { Route as NoAuthSignupRouteImport } from './routes/_no-auth.signup'
 import { Route as NoAuthLoginRouteImport } from './routes/_no-auth.login'
 import { Route as AuthHomeRouteImport } from './routes/_auth.home'
 import { Route as AuthGamesRouteImport } from './routes/_auth.games'
+import { Route as AuthGamesIndexRouteImport } from './routes/_auth.games.index'
+import { Route as AuthGamesGameIdRouteImport } from './routes/_auth.games.$gameId'
 
 const NoAuthRoute = NoAuthRouteImport.update({
   id: '/_no-auth',
@@ -50,36 +52,58 @@ const AuthGamesRoute = AuthGamesRouteImport.update({
   path: '/games',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGamesIndexRoute = AuthGamesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthGamesRoute,
+} as any)
+const AuthGamesGameIdRoute = AuthGamesGameIdRouteImport.update({
+  id: '/$gameId',
+  path: '/$gameId',
+  getParentRoute: () => AuthGamesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/games': typeof AuthGamesRoute
+  '/games': typeof AuthGamesRouteWithChildren
   '/home': typeof AuthHomeRoute
   '/login': typeof NoAuthLoginRoute
   '/signup': typeof NoAuthSignupRoute
+  '/games/$gameId': typeof AuthGamesGameIdRoute
+  '/games/': typeof AuthGamesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/games': typeof AuthGamesRoute
   '/home': typeof AuthHomeRoute
   '/login': typeof NoAuthLoginRoute
   '/signup': typeof NoAuthSignupRoute
+  '/games/$gameId': typeof AuthGamesGameIdRoute
+  '/games': typeof AuthGamesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
   '/_no-auth': typeof NoAuthRouteWithChildren
-  '/_auth/games': typeof AuthGamesRoute
+  '/_auth/games': typeof AuthGamesRouteWithChildren
   '/_auth/home': typeof AuthHomeRoute
   '/_no-auth/login': typeof NoAuthLoginRoute
   '/_no-auth/signup': typeof NoAuthSignupRoute
+  '/_auth/games/$gameId': typeof AuthGamesGameIdRoute
+  '/_auth/games/': typeof AuthGamesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/games' | '/home' | '/login' | '/signup'
+  fullPaths:
+    | '/'
+    | '/games'
+    | '/home'
+    | '/login'
+    | '/signup'
+    | '/games/$gameId'
+    | '/games/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/games' | '/home' | '/login' | '/signup'
+  to: '/' | '/home' | '/login' | '/signup' | '/games/$gameId' | '/games'
   id:
     | '__root__'
     | '/'
@@ -89,6 +113,8 @@ export interface FileRouteTypes {
     | '/_auth/home'
     | '/_no-auth/login'
     | '/_no-auth/signup'
+    | '/_auth/games/$gameId'
+    | '/_auth/games/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -148,16 +174,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGamesRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/games/': {
+      id: '/_auth/games/'
+      path: '/'
+      fullPath: '/games/'
+      preLoaderRoute: typeof AuthGamesIndexRouteImport
+      parentRoute: typeof AuthGamesRoute
+    }
+    '/_auth/games/$gameId': {
+      id: '/_auth/games/$gameId'
+      path: '/$gameId'
+      fullPath: '/games/$gameId'
+      preLoaderRoute: typeof AuthGamesGameIdRouteImport
+      parentRoute: typeof AuthGamesRoute
+    }
   }
 }
 
+interface AuthGamesRouteChildren {
+  AuthGamesGameIdRoute: typeof AuthGamesGameIdRoute
+  AuthGamesIndexRoute: typeof AuthGamesIndexRoute
+}
+
+const AuthGamesRouteChildren: AuthGamesRouteChildren = {
+  AuthGamesGameIdRoute: AuthGamesGameIdRoute,
+  AuthGamesIndexRoute: AuthGamesIndexRoute,
+}
+
+const AuthGamesRouteWithChildren = AuthGamesRoute._addFileChildren(
+  AuthGamesRouteChildren,
+)
+
 interface AuthRouteChildren {
-  AuthGamesRoute: typeof AuthGamesRoute
+  AuthGamesRoute: typeof AuthGamesRouteWithChildren
   AuthHomeRoute: typeof AuthHomeRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
-  AuthGamesRoute: AuthGamesRoute,
+  AuthGamesRoute: AuthGamesRouteWithChildren,
   AuthHomeRoute: AuthHomeRoute,
 }
 

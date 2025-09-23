@@ -182,6 +182,7 @@ function ResourcesTab({ gameId }: ResourcesTabProps) {
           onChange={setSearchInput}
           onSearch={handleSearch}
           disabled={resourcesLoading}
+          onClear={() => setSearchInput('')}
         />
         <Flex gap="2">
           <TagFilter

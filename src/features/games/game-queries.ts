@@ -2,13 +2,14 @@ import {
   createOwnGame,
   deleteOwnGame,
   getOwnGame,
-  getOwnGames,
   getOwnHomeGames,
+  searchOwnGames,
   updateOwnGame,
 } from './games-service';
 
 import { buildMutationHook } from '@/hooks/queries';
 import { queryOptions } from '@tanstack/react-query';
+import type { SearchGamesParams } from './game-model';
 
 export const GAMES_QUERY_KEY = 'games';
 
@@ -17,10 +18,10 @@ export const gameQueryKeys = {
   getOwnGames: {
     all: [GAMES_QUERY_KEY, 'own-games'],
     home: [GAMES_QUERY_KEY, 'own-games', 'home'],
-    paged: (page: number, perPage: number) => [
+    search: (searchParams: SearchGamesParams) => [
       GAMES_QUERY_KEY,
       'own-games',
-      { page, perPage },
+      { ...searchParams },
     ],
   },
 };
@@ -37,10 +38,10 @@ export const getOwnHomeGamesQueryOptions = () =>
     queryFn: () => getOwnHomeGames(),
   });
 
-export const getOwnGamesQueryOptions = (page = 1, perPage = 20) =>
+export const searchOwnGamesQueryOptions = (searchParams: SearchGamesParams) =>
   queryOptions({
-    queryKey: gameQueryKeys.getOwnGames.paged(page, perPage),
-    queryFn: () => getOwnGames(page, perPage),
+    queryKey: gameQueryKeys.getOwnGames.search(searchParams),
+    queryFn: () => searchOwnGames(searchParams),
   });
 
 export const useCreateOwnGameMutation = buildMutationHook(

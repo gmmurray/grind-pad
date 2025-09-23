@@ -18,11 +18,14 @@ import {
   LuList,
   LuPlus,
   LuSearch,
+  LuX,
 } from 'react-icons/lu';
 
 import { Link } from '@tanstack/react-router';
+import { type KeyboardEventHandler, useState } from 'react';
 import type { Game } from '../../game-model';
-import { useGameFormDialog } from '../game-form-dialog';
+import { useAddGameFormDialog } from '../game-form-dialog';
+import { useGameSelectDialog } from '../game-select-dialog';
 
 type GameSelectorProps = {
   games: Game[];
@@ -35,7 +38,8 @@ export function DesktopGameSelector({
   selectedGame,
   onSelectGame,
 }: GameSelectorProps) {
-  const { open: openNewGameDialog } = useGameFormDialog();
+  const { openAddGame, searchValue, setSearchValue, onSearchKeyDown } =
+    useGameSelector();
 
   return (
     <Box display={{ base: 'none', md: 'initial' }}>
@@ -62,10 +66,7 @@ export function DesktopGameSelector({
             <Portal>
               <Menu.Positioner display={{ base: 'none', md: 'initial' }}>
                 <Menu.Content>
-                  <Menu.Item
-                    value="add"
-                    onClick={() => openNewGameDialog({ mode: 'add' })}
-                  >
+                  <Menu.Item value="add" onClick={() => openAddGame({})}>
                     <LuPlus />
                     <Box>add</Box>
                   </Menu.Item>
@@ -84,20 +85,31 @@ export function DesktopGameSelector({
 
       <Stack gap="1">
         <InputGroup
+          mb="4"
+          startElement={<LuSearch />}
           endElement={
             <IconButton
               type="button"
               size="xs"
               variant="ghost"
               colorPalette="gray"
+              display={searchValue === '' ? 'none' : undefined}
               rounded="full"
+              onClick={() => setSearchValue('')}
             >
-              <LuSearch />
+              <LuX />
             </IconButton>
           }
         >
-          <Input variant="flushed" placeholder="search..." />
+          <Input
+            variant="flushed"
+            placeholder="search..."
+            value={searchValue}
+            onChange={e => setSearchValue(e.target.value)}
+            onKeyDown={onSearchKeyDown}
+          />
         </InputGroup>
+
         {games.map(game => {
           return (
             <Button
@@ -121,7 +133,8 @@ export function MobileGameSelector({
   selectedGame,
   onSelectGame,
 }: GameSelectorProps) {
-  const { open: openNewGameDialog } = useGameFormDialog();
+  const { openAddGame, searchValue, setSearchValue, onSearchKeyDown } =
+    useGameSelector();
 
   return (
     <Box display={{ base: 'initial', md: 'none' }}>
@@ -146,7 +159,7 @@ export function MobileGameSelector({
               type="button"
               variant="ghost"
               ml="-4"
-              onClick={() => openNewGameDialog({ mode: 'add' })}
+              onClick={() => openAddGame({})}
             >
               add game
             </Button>
@@ -157,19 +170,28 @@ export function MobileGameSelector({
 
           <InputGroup
             mb="4"
+            startElement={<LuSearch />}
             endElement={
               <IconButton
                 type="button"
                 size="xs"
                 variant="ghost"
                 colorPalette="gray"
+                display={searchValue === '' ? 'none' : undefined}
                 rounded="full"
+                onClick={() => setSearchValue('')}
               >
-                <LuSearch />
+                <LuX />
               </IconButton>
             }
           >
-            <Input variant="flushed" placeholder="search..." />
+            <Input
+              variant="flushed"
+              placeholder="search..."
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              onKeyDown={onSearchKeyDown}
+            />
           </InputGroup>
 
           <Stack gap="1">
@@ -192,3 +214,26 @@ export function MobileGameSelector({
     </Box>
   );
 }
+
+const useGameSelector = () => {
+  const { open: openAddGame } = useAddGameFormDialog();
+  const { open: openGameSelectDialog } = useGameSelectDialog();
+  const [searchValue, setSearchValue] = useState('');
+
+  const onSearchKeyDown: KeyboardEventHandler<HTMLInputElement> = e => {
+    if (e.key !== 'Enter' || !searchValue) {
+      return;
+    }
+
+    openGameSelectDialog(searchValue);
+    setSearchValue('');
+  };
+
+  return {
+    openAddGame,
+    openGameSelectDialog,
+    searchValue,
+    setSearchValue,
+    onSearchKeyDown,
+  };
+};

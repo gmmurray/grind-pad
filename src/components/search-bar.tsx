@@ -1,16 +1,23 @@
 import { IconButton, Input, InputGroup } from '@chakra-ui/react';
+import { LuSearch, LuX } from 'react-icons/lu';
 
 import type { KeyboardEventHandler } from 'react';
-import { LuSearch } from 'react-icons/lu';
 
 type SearchBarProps = {
   disabled: boolean;
   value: string;
   onChange: (value: string) => void;
   onSearch: (value?: string) => void;
+  onClear: () => void;
 };
 
-function SearchBar({ value, disabled, onChange, onSearch }: SearchBarProps) {
+function SearchBar({
+  value,
+  disabled,
+  onChange,
+  onSearch,
+  onClear,
+}: SearchBarProps) {
   const handleSearch = () => {
     const trimmed = value.trim();
     onSearch(trimmed ? trimmed : undefined);
@@ -24,17 +31,18 @@ function SearchBar({ value, disabled, onChange, onSearch }: SearchBarProps) {
 
   return (
     <InputGroup
+      startElement={<LuSearch />}
       endElement={
         <IconButton
           type="button"
           size="xs"
           variant="ghost"
           colorPalette="gray"
+          display={value === '' ? 'none' : undefined}
           rounded="full"
-          onClick={handleSearch}
-          disabled={disabled}
+          onClick={onClear}
         >
-          <LuSearch />
+          <LuX />
         </IconButton>
       }
     >

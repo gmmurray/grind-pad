@@ -2,12 +2,15 @@ import { pbClient } from '@/lib/pocketbase';
 import { validateModelDbList } from '@/utils/validateModelDbList';
 import { getUser } from '../auth/auth-service';
 import { createOwnMetadata } from '../metadata/metadata-service';
+import type { SearchResult } from '../shared/types';
 import { GAMES_COLLECTION } from './game-constants';
 import {
   type CreateGame,
   CreateGameSchema,
   type Game,
   GameSchema,
+  type SearchGamesParams,
+  SearchGamesParamsSchema,
   type UpdateGame,
   UpdateGameSchema,
 } from './game-model';
@@ -50,30 +53,46 @@ export async function getOwnHomeGames(): Promise<Game[]> {
   return validateModelDbList(dbGames.items, GameSchema);
 }
 
-export async function getOwnGames(page = 1, perPage = 20): Promise<Game[]> {
+export async function searchOwnGames(
+  searchInput: SearchGamesParams,
+): Promise<SearchResult<Game>> {
   const user = getUser();
 
   if (!user) {
     console.warn('Unable to retrieve games: no user provided');
-    return [];
+    return { items: [], count: 0, totalPages: 0 };
   }
 
-  const list = await pbClient
+  const validatedSearch = SearchGamesParamsSchema.safeParse(searchInput);
+
+  if (!validatedSearch.success) {
+    console.warn('Unable to search games: invalid input');
+    throw new Error('Error searching your games');
+  }
+
+  const { text, page, perPage, sortBy, sortDir } = searchInput;
+
+  const filters: string[] = [`user="${user.id}"`];
+
+  if (text) {
+    filters.push(`title~"${text}"`);
+  }
+
+  const filterString = filters.join(' && ');
+
+  const sortString = (sortDir === 'desc' ? '-' : '') + sortBy;
+
+  const dbGames = await pbClient
     .collection(GAMES_COLLECTION)
-    .getList(page, perPage, { filter: `user = "${user.id}"` });
+    .getList(page, perPage, { filter: filterString, sort: sortString });
 
-  const results: Game[] = [];
-  for (const g of list.items) {
-    const validated = GameSchema.safeParse(g);
+  const result = validateModelDbList(dbGames.items, GameSchema);
 
-    if (!validated.success) {
-      console.warn(`Invalid game retrieved from database with id: ${g.id}`);
-      continue;
-    }
-    results.push(validated.data);
-  }
-
-  return results;
+  return {
+    items: result,
+    count: dbGames.totalItems,
+    totalPages: dbGames.totalPages,
+  };
 }
 
 export async function createOwnGame(input: CreateGame): Promise<Game> {
