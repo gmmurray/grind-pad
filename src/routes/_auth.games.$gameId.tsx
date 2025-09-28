@@ -3,22 +3,29 @@ import {
   useDeleteOwnGameMutation,
 } from '@/features/games/game-queries';
 import {
+  getOwnGameMetadataQueryOptions,
+  useUpdateOwnMetadataMutation,
+} from '@/features/metadata/metadata-queries';
+import {
   Box,
   Breadcrumb,
   Button,
   Flex,
+  Group,
   Heading,
+  Icon,
   Separator,
   SimpleGrid,
   Stack,
+  Text,
 } from '@chakra-ui/react';
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { LuHouse, LuInfo } from 'react-icons/lu';
 
-import { TagChips } from '@/components/tags';
+import { toaster } from '@/components/ui/toaster';
 import EditGameForm from '@/features/games/components/edit-game-form';
-import { getOwnGameMetadataQueryOptions } from '@/features/metadata/metadata-queries';
+import EditGameTags from '@/features/games/components/edit-game-tags';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { LuHouse } from 'react-icons/lu';
 
 export const Route = createFileRoute('/_auth/games/$gameId')({
   component: RouteComponent,
@@ -40,13 +47,34 @@ function RouteComponent() {
     getOwnGameMetadataQueryOptions(gameId),
   );
 
+  const updateMutation = useUpdateOwnMetadataMutation(gameId);
   const deleteMutation = useDeleteOwnGameMutation();
 
+  const handleUpdateTags = async (
+    type: 'notes' | 'resources',
+    newValue: string[],
+  ) => {
+    const key = type === 'notes' ? 'noteTags' : 'resourceTags';
+
+    await updateMutation.mutateAsync({
+      gameId,
+      input: {
+        [key]: newValue,
+      },
+    });
+    toaster.success({ title: 'tags updated' });
+  };
+
   const handleDelete = async () => {
-    if (!confirm('Are you sure?')) {
+    if (
+      !confirm(
+        'Are you sure? This will also delete all related tasks, notes, and resources.',
+      )
+    ) {
       return;
     }
     await deleteMutation.mutateAsync(gameId);
+    toaster.success({ title: 'game removed' });
     navigate({ to: '/games' });
   };
 
@@ -94,20 +122,45 @@ function RouteComponent() {
 
       <Stack gap="4">
         <Heading size="2xl">Settings</Heading>
+        <Stack gap="2">
+          <Heading size="lg">tags</Heading>
+          <Group alignItems="center">
+            <Icon color="fg.subtle" size="xs">
+              <LuInfo />
+            </Icon>
+            <Text fontStyle="italic" color="fg.subtle" fontSize="sm">
+              you must update the note or resource directly if you want to
+              modify its tags.
+            </Text>
+          </Group>
+          <SimpleGrid columns={{ base: 1, md: 2 }}>
+            <Box>
+              <Heading size="sm" mb="1">
+                notes
+              </Heading>
+              <EditGameTags
+                initialValue={gameMetadata?.noteTags ?? []}
+                onSave={value => handleUpdateTags('notes', value)}
+                disabled={updateMutation.isPending}
+              />
+            </Box>
+          </SimpleGrid>
 
-        <Box>
-          <Heading size="lg">note tags</Heading>
-          {(gameMetadata?.noteTags ?? []).length > 0 && (
-            <TagChips tags={gameMetadata?.noteTags ?? []} />
-          )}
-        </Box>
+          <SimpleGrid columns={{ base: 1, md: 2 }}>
+            <Box>
+              <Heading size="sm" mb="1">
+                resources
+              </Heading>
+              <EditGameTags
+                initialValue={gameMetadata?.resourceTags ?? []}
+                onSave={value => handleUpdateTags('resources', value)}
+                disabled={updateMutation.isPending}
+              />
+            </Box>
+          </SimpleGrid>
+        </Stack>
 
-        <Box>
-          <Heading size="lg">resource tags</Heading>
-          {(gameMetadata?.resourceTags ?? []).length > 0 && (
-            <TagChips tags={gameMetadata?.resourceTags ?? []} />
-          )}
-        </Box>
+        <Separator />
 
         <Box>
           <Button variant="subtle" colorPalette="red" onClick={handleDelete}>
