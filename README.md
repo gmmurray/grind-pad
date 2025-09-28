@@ -32,4 +32,5 @@ Standard React development workflow. Uses TanStack Query for data fetching and c
 
 - Part of a larger platform sharing PocketBase backend
 - MVP complete - ready for real-world testing
-- See `future_features.md` for enhancement ideas
+- See [future feature ideas](./docs/future_feature_ideas.md) for enhancement backlog
+- Uses [conventional commits](./docs/conventional_commits.md) for commit messaging
