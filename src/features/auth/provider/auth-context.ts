@@ -4,7 +4,6 @@ import { createContext } from 'react';
 
 export type AuthState = {
   user: User | null;
-  isLoading: boolean;
   isAuthenticating: boolean;
   isAuthenticated: boolean;
   login: (input: LoginUser, redirect?: string) => Promise<void>;

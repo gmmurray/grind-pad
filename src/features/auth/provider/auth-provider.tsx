@@ -15,19 +15,47 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(
     getUser(pbClient.authStore.record),
   );
-  const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = pbClient.authStore.onChange((_, record) => {
-      setIsLoading(true);
-      const nextUser = getUser(record);
+    let cancelled = false;
 
-      setUser(nextUser);
-      setIsLoading(false);
+    async function checkAndRefresh() {
+      try {
+        // if there's a record, but token is expired
+        if (pbClient.authStore.record && !pbClient.authStore.isValid) {
+          await pbClient.collection(USERS_COLLECTION).authRefresh();
+        }
+
+        // after refresh (or if already valid), update user state
+        if (!cancelled) {
+          setUser(getUser(pbClient.authStore.record));
+        }
+      } catch (err) {
+        console.error('Failed to refresh auth', err);
+
+        // refresh failed -> clear auth and redirect
+        pbClient.authStore.clear();
+        if (!cancelled) {
+          setUser(null);
+          router.navigate({ to: '/login' });
+        }
+      }
+    }
+
+    checkAndRefresh();
+
+    // still want to react to auth changes
+    const unsubscribe = pbClient.authStore.onChange((_, record) => {
+      if (!cancelled) {
+        setUser(getUser(record));
+      }
     }, true);
 
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   const login = useCallback(
@@ -72,9 +100,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
     <AuthContext.Provider
       value={{
         user,
-        isLoading,
         isAuthenticating,
-        isAuthenticated: !!user && !isLoading,
+        isAuthenticated: !!user,
 
         login,
         signup,
