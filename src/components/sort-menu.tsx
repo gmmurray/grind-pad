@@ -1,4 +1,4 @@
-import { Button, Menu, Portal } from '@chakra-ui/react';
+import { Button, type ButtonProps, Menu, Portal } from '@chakra-ui/react';
 
 import type { SortDir } from '@/lib/zod/common';
 import { LuArrowUpDown } from 'react-icons/lu';
@@ -18,14 +18,21 @@ type SortMenuProps = {
   value: string;
   options: SortMenuOptions;
   disabled: boolean;
+  size?: ButtonProps['size'];
   onChange: (value: string) => void;
 };
 
-function SortMenu({ value, options, disabled, onChange }: SortMenuProps) {
+function SortMenu({
+  value,
+  options,
+  disabled,
+  size = 'sm',
+  onChange,
+}: SortMenuProps) {
   return (
     <Menu.Root>
       <Menu.Trigger asChild disabled={disabled}>
-        <Button size="sm" variant="subtle">
+        <Button size={size} variant="subtle">
           <LuArrowUpDown /> Sort
         </Button>
       </Menu.Trigger>

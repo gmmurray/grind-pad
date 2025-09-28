@@ -30,7 +30,7 @@ export type GamesSortBy = (typeof gamesSortBy)[number];
 export const DEFAULT_GAMES_SEARCH_PARAMS = {
   page: 1,
   perPage: 6,
-  sortBy: GAMES_SORT_BY.UPDATED,
+  sortBy: GAMES_SORT_BY.TITLE,
   sortDir: SORT_DIRECTION.DESC,
 };
 

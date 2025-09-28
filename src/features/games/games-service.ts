@@ -23,9 +23,15 @@ export async function getOwnGame(gameId: string): Promise<Game | null> {
     return null;
   }
 
-  const dbGame = await pbClient
-    .collection(GAMES_COLLECTION)
-    .getFirstListItem(`id="${gameId}" && user = "${user.id}"`);
+  let dbGame: Game;
+  try {
+    dbGame = await pbClient
+      .collection(GAMES_COLLECTION)
+      .getFirstListItem(`id="${gameId}" && user = "${user.id}"`);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
 
   const validated = GameSchema.safeParse(dbGame);
 

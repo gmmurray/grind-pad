@@ -42,14 +42,14 @@ export const Route = createFileRoute('/_auth/home')({
     const selectedGameId = gameFromSearch ?? gameFromStorage;
 
     if (selectedGameId) {
-      queryClient.ensureQueryData(
-        getOwnGameMetadataQueryOptions(selectedGameId),
-      );
       if (!gameList.some(g => g.id === selectedGameId)) {
         await queryClient.ensureQueryData(
           getOwnGameQueryOptions(selectedGameId),
         );
       }
+      queryClient.ensureQueryData(
+        getOwnGameMetadataQueryOptions(selectedGameId),
+      );
 
       if (tabFromSearch === GAME_TABS.NOTES) {
         // prefetch tasks and resources
