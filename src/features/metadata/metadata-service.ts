@@ -1,6 +1,7 @@
 import { pbClient } from '@/lib/pocketbase';
 import { ClientResponseError } from 'pocketbase';
 import { getUser } from '../auth/auth-service';
+import { getOwnGame } from '../games/games-service';
 import { METADATA_COLLECTION } from './metadata-constants';
 import {
   type CreateMetadata,
@@ -39,6 +40,13 @@ export async function getOwnGameMetadata(
     return validated.data;
   } catch (error) {
     if (error instanceof ClientResponseError && error.status === 404) {
+      const existingGame = await getOwnGame(gameId);
+      if (!existingGame) {
+        console.warn(
+          `Unable to retrieve metadata: user with id ${user.id} unable to access game with id ${gameId}`,
+        );
+        throw error;
+      }
       foundMetadata = await createOwnMetadata({
         gameId,
         input: {

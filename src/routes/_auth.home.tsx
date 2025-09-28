@@ -6,7 +6,9 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo } from 'react';
 
+import ErrorView from '@/components/error-view';
 import GameDashboard from '@/features/games/components/dashboard/game-dashboard';
+import NoGames from '@/features/games/components/no-games';
 import {
   GAME_TABS,
   type GameTab,
@@ -100,6 +102,9 @@ export const Route = createFileRoute('/_auth/home')({
     }
   },
   component: RouteComponent,
+  errorComponent: () => {
+    return <ErrorView loader />;
+  },
 });
 
 function RouteComponent() {
@@ -128,6 +133,8 @@ function RouteComponent() {
       } catch {}
     }
   }, [selectedGameId]);
+
+  const hasNoGames = gamesQuery.data.length === 0 && !selectedFromCache;
 
   // Build a union list so selected game shows even if off-page
   const unionGames = useMemo(
@@ -164,6 +171,10 @@ function RouteComponent() {
     [navigate],
   );
 
+  if (hasNoGames) {
+    return <NoGames />;
+  }
+
   return (
     <GameDashboard
       games={unionGames}
@@ -198,7 +209,7 @@ function makeUnionGames(
   return [
     {
       id: selectedId,
-      title: '(loading...)',
+      title: 'loading...',
       user: '',
       created: '',
       updated: '',

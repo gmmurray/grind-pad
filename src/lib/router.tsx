@@ -1,3 +1,5 @@
+import ErrorView from '@/components/error-view';
+import NotFound from '@/components/not-found';
 import { createRouter } from '@tanstack/react-router';
 import { routeTree } from '../routeTree.gen';
 import { queryClient } from './queryClient';
@@ -12,6 +14,8 @@ export const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  defaultNotFoundComponent: () => <NotFound />,
+  defaultErrorComponent: ErrorView,
 });
 
 declare module '@tanstack/react-router' {

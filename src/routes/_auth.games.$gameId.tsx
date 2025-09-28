@@ -19,24 +19,42 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
+import {
+  Link,
+  createFileRoute,
+  notFound,
+  useNavigate,
+} from '@tanstack/react-router';
 import { LuHouse, LuInfo } from 'react-icons/lu';
 
+import NotFound from '@/components/not-found';
 import { toaster } from '@/components/ui/toaster';
 import EditGameForm from '@/features/games/components/edit-game-form';
 import EditGameTags from '@/features/games/components/edit-game-tags';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { ClientResponseError } from 'pocketbase';
 
 export const Route = createFileRoute('/_auth/games/$gameId')({
   component: RouteComponent,
   loader: async ({ params, context: { queryClient } }) => {
-    await Promise.all([
-      queryClient.ensureQueryData(getOwnGameQueryOptions(params.gameId)),
-      queryClient.ensureQueryData(
-        getOwnGameMetadataQueryOptions(params.gameId),
-      ),
-    ]);
+    try {
+      await queryClient.ensureQueryData(getOwnGameQueryOptions(params.gameId));
+    } catch (error) {
+      if (error instanceof ClientResponseError && error.status === 404) {
+        throw notFound();
+      }
+    }
+    await queryClient.ensureQueryData(getOwnGameQueryOptions(params.gameId));
   },
+  notFoundComponent: () => (
+    <NotFound
+      description="Game could not be found"
+      redirect={{
+        to: '/games',
+        text: 'Back to games',
+      }}
+    />
+  ),
 });
 
 function RouteComponent() {
