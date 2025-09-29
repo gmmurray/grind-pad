@@ -55,6 +55,14 @@ export const Route = createFileRoute('/_auth/games/$gameId')({
       }}
     />
   ),
+
+  head: () => ({
+    meta: [
+      {
+        title: 'edit game | grind-pad',
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {

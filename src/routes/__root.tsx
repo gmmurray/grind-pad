@@ -1,4 +1,8 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
+import {
+  HeadContent,
+  Outlet,
+  createRootRouteWithContext,
+} from '@tanstack/react-router';
 
 import type { AuthState } from '@/features/auth/provider/auth-context';
 import { TanstackDevtools } from '@tanstack/react-devtools';
@@ -11,6 +15,7 @@ type RouterContext = { queryClient: QueryClient; auth: AuthState };
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
+      <HeadContent />
       <Outlet />
       {import.meta.env.DEV && (
         <TanstackDevtools
@@ -31,4 +36,17 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       )}
     </>
   ),
+  head: () => ({
+    meta: [
+      {
+        title: 'grind-pad',
+      },
+    ],
+    links: [
+      {
+        rel: 'icon',
+        href: '/favicon.ico',
+      },
+    ],
+  }),
 });

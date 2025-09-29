@@ -17,6 +17,13 @@ import { useAuth } from '@/features/auth/provider/use-auth';
 
 export const Route = createFileRoute('/_no-auth/signup')({
   component: RouteComponent,
+  head: () => ({
+    meta: [
+      {
+        title: 'sign up | grind-pad',
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {

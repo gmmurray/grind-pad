@@ -3,6 +3,13 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
   component: App,
+  head: () => ({
+    meta: [
+      {
+        title: 'grind-pad',
+      },
+    ],
+  }),
 });
 
 function App() {

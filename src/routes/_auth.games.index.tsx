@@ -61,6 +61,13 @@ export const Route = createFileRoute('/_auth/games/')({
       }),
     );
   },
+  head: () => ({
+    meta: [
+      {
+        title: 'manage games | grind-pad',
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {

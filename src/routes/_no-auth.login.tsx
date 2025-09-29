@@ -21,6 +21,13 @@ export const Route = createFileRoute('/_no-auth/login')({
   validateSearch: z.object({
     redirect: z.string().optional(),
   }),
+  head: () => ({
+    meta: [
+      {
+        title: 'login | grind-pad',
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {

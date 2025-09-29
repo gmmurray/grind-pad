@@ -105,6 +105,13 @@ export const Route = createFileRoute('/_auth/home')({
   errorComponent: () => {
     return <ErrorView loader />;
   },
+  head: () => ({
+    meta: [
+      {
+        title: 'home | grind-pad',
+      },
+    ],
+  }),
 });
 
 function RouteComponent() {
