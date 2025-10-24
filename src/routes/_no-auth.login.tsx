@@ -4,6 +4,9 @@ import {
   Card,
   Link as ChakraLink,
   Field,
+  Flex,
+  Heading,
+  Image,
   Input,
   Stack,
   Text,
@@ -24,7 +27,12 @@ export const Route = createFileRoute('/_no-auth/login')({
   head: () => ({
     meta: [
       {
-        title: 'login | grind-pad',
+        title: 'login | GrindPad',
+      },
+      {
+        name: 'description',
+        content:
+          'Sign in to GrindPad to access your MMO tasks, builds, and game resources.',
       },
     ],
   }),
@@ -67,7 +75,16 @@ function RouteComponent() {
             form.handleSubmit();
           }}
         >
-          <Card.Header>login</Card.Header>
+          <Flex justifyContent="center">
+            <Image
+              src="/gp_transparent.png"
+              height="150px"
+              textAlign="center"
+            />
+          </Flex>
+          <Card.Header textAlign={'center'}>
+            <Heading as="h1">login</Heading>
+          </Card.Header>
           <Card.Body>
             <Stack gap="4" w="full">
               <form.Field name="email">
@@ -105,9 +122,9 @@ function RouteComponent() {
                 )}
               </form.Field>
               <Text color="fg.muted">
-                {`Don't have an account yet? `}
+                {`don't have an account yet? `}
                 <ChakraLink asChild>
-                  <Link to="/signup">Sign up</Link>
+                  <Link to="/signup">sign up</Link>
                 </ChakraLink>{' '}
               </Text>
             </Stack>

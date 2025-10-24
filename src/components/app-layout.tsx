@@ -1,11 +1,13 @@
 import {
   Box,
-  Center,
   Container,
   Flex,
+  Group,
   IconButton,
+  Image,
   Menu,
   Portal,
+  Stack,
   Text,
 } from '@chakra-ui/react';
 
@@ -20,11 +22,15 @@ function AppLayout({ children }: PropsWithChildren) {
     <Flex minH="100vh" direction="column">
       <Box bg="bg.panel" py="4">
         <Container maxW="5xl" display="flex">
-          <Link to="/home">
-            <Text textStyle="3xl" fontWeight="medium">
-              GrindPad
-            </Text>
-          </Link>
+          <Group>
+            <Link to="/home">
+              <Image
+                src="/gp_transparent.png"
+                height="50px"
+                alt="GrindPad logo"
+              />
+            </Link>
+          </Group>
 
           <Menu.Root>
             <Menu.Trigger asChild>
@@ -39,6 +45,9 @@ function AppLayout({ children }: PropsWithChildren) {
                     <Menu.ItemGroupLabel color="fg.muted">
                       {auth.user?.email}
                     </Menu.ItemGroupLabel>
+                    <Menu.Item value="games" asChild>
+                      <Link to="/games">games</Link>
+                    </Menu.Item>
                     <Menu.Item value="logout" onClick={() => auth.logout()}>
                       logout
                     </Menu.Item>
@@ -56,9 +65,10 @@ function AppLayout({ children }: PropsWithChildren) {
 
       <Box mt="auto" bg="bg.panel" py="4">
         <Container maxW="5xl">
-          <Center>
-            <Text color="fg.muted">©{new Date().getFullYear()} GrindApp</Text>
-          </Center>
+          <Stack color="fg.muted" textAlign="center" fontSize="sm">
+            <Text>&copy;{new Date().getFullYear()} GrindPad</Text>
+            <Text> Made with coffee and too many late-night raids.</Text>
+          </Stack>
         </Container>
       </Box>
     </Flex>

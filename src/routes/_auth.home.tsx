@@ -108,7 +108,7 @@ export const Route = createFileRoute('/_auth/home')({
   head: () => ({
     meta: [
       {
-        title: 'home | grind-pad',
+        title: 'home | GrindPad',
       },
     ],
   }),

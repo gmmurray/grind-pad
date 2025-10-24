@@ -1,6 +1,8 @@
+import { DEFAULT_META_DESCRIPTION, DEFAULT_META_TITLE } from '@/content';
 import {
   HeadContent,
   Outlet,
+  Scripts,
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 
@@ -17,6 +19,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     <>
       <HeadContent />
       <Outlet />
+      <Scripts />
       {import.meta.env.DEV && (
         <TanstackDevtools
           config={{
@@ -39,13 +42,58 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   head: () => ({
     meta: [
       {
-        title: 'grind-pad',
+        title: DEFAULT_META_TITLE,
+      },
+      {
+        name: 'description',
+        content: DEFAULT_META_DESCRIPTION,
+      },
+      {
+        property: 'og:title',
+        content: DEFAULT_META_TITLE,
+      },
+      {
+        property: 'og:description',
+        content: DEFAULT_META_DESCRIPTION,
+      },
+      {
+        property: 'og:image',
+        content: `${new URL('gp_opengraph.png', import.meta.env.VITE_APP_URL)}`,
+      },
+      {
+        property: 'og:url',
+        content: import.meta.env.VITE_APP_URL,
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        property: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        property: 'twitter:title',
+        content: DEFAULT_META_TITLE,
+      },
+      {
+        property: 'twitter:description',
+        content: DEFAULT_META_DESCRIPTION,
+      },
+      {
+        property: 'twitter:image',
+        content: `${new URL('gp_opengraph.png', import.meta.env.VITE_APP_URL)}`,
       },
     ],
     links: [
       {
         rel: 'icon',
         href: '/favicon.ico',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: '/favicon-32x32.png',
       },
     ],
   }),
