@@ -35,6 +35,12 @@ export const Route = createFileRoute('/_no-auth/login')({
           'Sign in to GrindPad to access your MMO tasks, builds, and game resources.',
       },
     ],
+    links: [
+      {
+        rel: 'canonical',
+        href: new URL('/login/', import.meta.env.VITE_APP_URL).toString(),
+      },
+    ],
   }),
 });
 

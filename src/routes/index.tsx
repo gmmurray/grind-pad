@@ -18,6 +18,12 @@ import { LuCheckCheck, LuGamepad2, LuLink, LuNotebook } from 'react-icons/lu';
 export const Route = createFileRoute('/')({
   component: App,
   head: () => ({
+    links: [
+      {
+        rel: 'canonical',
+        href: new URL('/', import.meta.env.VITE_APP_URL).toString(),
+      },
+    ],
     scripts: [
       {
         type: 'application/ld+json',

@@ -31,6 +31,12 @@ export const Route = createFileRoute('/_no-auth/signup')({
           'Create your free GrindPad account. Start organizing your MMO dailies, builds, and gaming sessions in seconds.',
       },
     ],
+    links: [
+      {
+        rel: 'canonical',
+        href: new URL('/signup/', import.meta.env.VITE_APP_URL).toString(),
+      },
+    ],
   }),
 });
 

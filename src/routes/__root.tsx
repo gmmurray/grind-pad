@@ -58,7 +58,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         property: 'og:image',
-        content: `${new URL('gp_opengraph.png', import.meta.env.VITE_APP_URL)}`,
+        content: new URL(
+          'gp_opengraph.png',
+          import.meta.env.VITE_APP_URL,
+        ).toString(),
       },
       {
         property: 'og:url',
@@ -82,7 +85,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       {
         property: 'twitter:image',
-        content: `${new URL('gp_opengraph.png', import.meta.env.VITE_APP_URL)}`,
+        content: new URL(
+          'gp_opengraph.png',
+          import.meta.env.VITE_APP_URL,
+        ).toString(),
       },
     ],
     links: [
