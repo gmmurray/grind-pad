@@ -68,6 +68,14 @@ function App() {
         >
           <Box>
             <Heading
+              size={{ base: '5xl', md: '7xl' }}
+              fontWeight="bolder"
+              pb="2"
+              color="colorPalette.fg"
+            >
+              GrindPad
+            </Heading>
+            <Heading
               size={{ base: '4xl', md: '6xl' }}
               fontWeight="bolder"
               mb="6"
