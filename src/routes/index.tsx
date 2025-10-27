@@ -56,7 +56,7 @@ export const Route = createFileRoute('/')({
 function App() {
   return (
     <Box>
-      <Box minH={{ base: '40vh', md: '45vh' }}>
+      <Box minH={{ base: '40vh', md: '45vh' }} mb="10" pt="4">
         <Container
           pos="relative"
           h="100%"
